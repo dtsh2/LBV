@@ -8,7 +8,7 @@ rm(list=ls())
 
 ## pomp test run lbv
 getwd()
-setwd("~/Cambridge/CSU 2013/LBV Model/lbvmodels/new_models_sept")
+setwd("~/GitHub/LBV")
 
 library(pomp)
 
@@ -45,7 +45,7 @@ pomp(
 ) -> sir
 
 params <- c(
-  BETA=8,
+  BETA=10,
   MU=0.000510492,
   DELTA=0.002312247,
   ALPHA=0.2,
@@ -126,7 +126,7 @@ mins = c( 				    ## set mins for each parameters-exclude those not to be varied
   zeta=0)       			
 
 maxs = c( 				    ## set mins for each parameters-exclude those not to be varied if any
-  beta= 20,           # transmission
+  beta= 100,           # transmission
   mu= 0.00510492,  	          # natural mortality from my CMR study
   delta= 0.02312247,            # juvenile mortality rate
   alpha= 0.9,		    # dis induced mortality
@@ -510,8 +510,8 @@ plot.prcc = function(prcc.obj,alpha=0.05,...){
 }
 
 # prcc with stoch simulation results...
-res<-cbind(X[,1],X[,2],X[,3]
-           #,X[,4], # pop extinct
+res<-cbind(X[,1],X[,2],X[,3],
+           #X[,4], # pop extinct
            X[,5])
 results=prcc(par.mat=hypercube,model.output=res ## results matrix here...
                ,routine="blower" # NB removed par names so uses symbols, add [par.names="",]

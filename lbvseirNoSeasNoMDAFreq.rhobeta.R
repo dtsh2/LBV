@@ -10,7 +10,7 @@ rm(list=ls())
 
 ## pomp test run lbv
 getwd()
-setwd("~/Cambridge/CSU 2013/LBV Model/lbvmodels/new_models_sept")
+setwd("~/GitHub/LBV")
 
 library(pomp)
 
@@ -47,11 +47,11 @@ pomp(
 ) -> sir
 
 params <- c(
-  BETA=8,
+  BETA=5,
   MU=0.000510492,
   DELTA=0.002312247,
   ALPHA=0.2,
-  RHO=0.02,
+  RHO=0.05,
   SIGMA=1/48,
   K=1000000,
   EPSILON=1/365,
@@ -321,24 +321,6 @@ mtext("Adult seroprevalence", side=4,line=3,cex=1.2)
 
 ## 
 
-## reconvert to beta
-betaorig <-fullParamSets[,28]/fullParamSets[,5]
-zzp<- interp(log(betaorig),paramset[,5],X[,2], duplicate=T)
-filled.contour(zzp, col=topo.colors(24),
-               ylab=expression(rho),xlab= #expression(beta),
-                 expression(paste(plain(Log)," (", beta,")")),
-               cex.lab=1.2)
-mtext("Prevalence", side=4,line=1,cex=1.2)
-
-zzs<- interp(betaorig,paramset[,5],X[,3], duplicate=T)
-#image(zz,col=topo.colors(12),main="seroprevalence")
-#contour(zz,add=T,cex=2)
-
-filled.contour(zzs, col=topo.colors(30),
-               ylab=expression(rho),xlab= expression(beta),#expression(paste(plain(Log)," (", beta,")")),
-               cex.lab=1.2)
-mtext("Adult seroprevalence", side=4,line=1,cex=1.2)
-
 plot(X[,2],X[,3])
 plot(X[,1],X[,2])
 plot(X[,1],X[,3])
@@ -350,7 +332,7 @@ params <- c(
   MU=0.000510492,
   DELTA=0.002312247,
   ALPHA=0.2,
-  RHO=0.02,
+  RHO=0.08,
   SIGMA=1/48,
   K=1000000,
   EPSILON=1/365,
@@ -391,7 +373,7 @@ susat<-rowSums(sim[,c(6:8)])
 
 new.sim <-cbind(sim,susjt,susat)
 # plot
-plot(new.sim$susjt[6000:7300], main ="",ylim=c(0,300000),col="blue",
+plot(new.sim$susjt[6000:7300], main ="",ylim=c(0,max(new.sim$susjt[6000:7300])),col="blue",
      xlab="Time (Days)",ylab="",type="l",lwd=2,cex.lab=1.2)
 mtext("Numbers", side=2,las=0,at=1.5e+5,line=5,cex=1.2)
 #lines(new.sim$EIJ[6000:7300],col="yellow",lwd=2)
@@ -399,7 +381,7 @@ mtext("Numbers", side=2,las=0,at=1.5e+5,line=5,cex=1.2)
 lines(new.sim$INFJ[6000:7300],col="red",lwd=2)
 lines(new.sim$RECJ[6000:7300],col="green",lwd=2)
 
-plot(new.sim$susat[6000:7300], main ="",ylim=c(0,600000),col="blue",
+plot(new.sim$susat[6000:7300], main ="",ylim=c(0,max(new.sim$susat[6000:7300])),col="blue",
      xlab="Time (Days)",ylab="",type="l",lwd=2,cex.lab=1.2)
 mtext("Numbers", side=2,las=0,at=250000,line=5,cex=1.2)
 #lines(new.sim$EIA[6000:7300],col="yellow",lwd=2)
@@ -411,8 +393,8 @@ lines(new.sim$RECA[6000:7300],col="green",lwd=2)
 dim(new.sim)
 
 par(mfrow=c(1,1))
-plot(new.sim$INFA[6000:7300], main ="",ylim=c(0,100),col="red",
+plot(new.sim$INFA[6000:7300], main ="",ylim=c(0,max(new.sim$INFA[6000:7300])),col="red",
      xlab="Time (Days)",ylab="",type="l",lwd=2,cex.lab=1.2)
 mtext("Numbers", side=2,las=0,at=50,line=4,cex=1.2)
 lines(new.sim$INFJ[6000:7300],col="orange",lwd=2)
-##############3
+##############

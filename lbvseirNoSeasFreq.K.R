@@ -8,7 +8,7 @@ rm(list=ls())
 
 ## pomp test run lbv
 getwd()
-setwd("~/Cambridge/CSU 2013/LBV Model/lbvmodels/new_models_sept")
+setwd("~/GitHub/LBV")
 
 library(pomp)
 
@@ -103,7 +103,7 @@ nonVarying = matrix(c(
   MU=0.000510492,
   DELTA=0.002312247,
   ALPHA=0.2,
-  RHO=0.02,
+  RHO=0.05,
   SIGMA=1/48,
   #K=1000000,
   EPSILON=1/365,
