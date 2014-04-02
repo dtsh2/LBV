@@ -1,4 +1,4 @@
-/* pomp model file: seirs lbv */
+/* pomp model file: seir no seas lbv */
 
 #include <R.h>
 #include <Rmath.h>
@@ -22,9 +22,7 @@
 #define OMEGA		(p[parindex[12]]) // pulse per yr
 #define PHI			(p[parindex[13]]) // timing during year
 #define GAMMA		(p[parindex[14]]) // rate of juvenile SUSJM aging
-#define LAMBDA		(p[parindex[15]]) // rate of antibody loss for REC adults
-#define ZETA		(p[parindex[16]]) // strength of seasonality
-#define OBSER    (p[parindex[17]]) // error in S and R estimates
+#define ETA			(p[parindex[15]]) // error in measurement models
 
 // define states
 
@@ -40,38 +38,36 @@
 #define ERA			(x[stateindex[9]]) // number of exposed to recovered adults
 #define INFA       (x[stateindex[10]]) // number of infected adults
 #define RECA       (x[stateindex[11]]) // number of recovered adults
+#define SPA			(x[stateindex[12]]) // adult seroprevalence
+#define SPJ			(x[stateindex[13]]) // juvenile seroprevalence
 
 // define observations
 
-#define DSUSJ  	(y[obsindex[0]]) // "number" of observed sus juv, based on pop size and % SusA
-#define DRECJ		(y[obsindex[1]]) // "number" of observed rec juv, based on pop size and % RecA
-#define DSUSA		(y[obsindex[2]]) // "number" of observed sus adults, based on pop size and % SusA
-#define DRECA		(y[obsindex[3]]) // "number" of observed rec adults, based on pop size and % RecA
+#define DatSPA	(y[obsindex[0]]) // data adult seroprev
+#define DatSPJ	(y[obsindex[1]]) // data juvenile seroprev
 
-// the measurement model
+// bivariate normal measurement error density
+void lbv_normal_dmeasure (double *lik, double *y, double *x, double *p, int give_log, 
+			   int *obsindex, int *stateindex, int *parindex, int *covindex,
+			   int covdim, double *covar, double t) 
+{
+  double sd = fabs(ETA);
+  double f = 0.0;
+  f += (ISNA(DatSPA)) ? 0.0 : dnorm(DatSPA,SPA,sd,1);
+  f += (ISNA(DatSPJ)) ? 0.0 : dnorm(DatSPJ,SPJ,sd,1);
+  *lik = (give_log) ? f : exp(f);
+}
 
-void binomial_dmeasure(double *lik, double *y, double *x, double *p, int give_log,
-			int *obsindex, int *stateindex, int *parindex, int *covindex,
-			 int ncovars, double *covars, 
-      double t)
-
-	{
-		*lik = dbinom(DSUSJ,SUSJ, OBSER,give_log)+dbinom(DRECJ,RECJ, OBSER,give_log)+dbinom(DSUSA,SUSA, OBSER,give_log)+dbinom(DRECA,RECA, OBSER,give_log);
-	}
-
-// the r measure
-
-void binomial_rmeasure(double *y, double *x, double *p,
-  		int *obsindex, int *stateindex, int *parindex, int *covindex,
-			 int ncovars, double *covars, 
-      double t)
-
-	{
-		DSUSJ=rbinom(SUSJ, OBSER);
-    DRECJ=rbinom(RECJ, OBSER);
-    DSUSA=rbinom(SUSA, OBSER);
-    DRECA=rbinom(RECA, OBSER);
-	}
+// bivariate normal measurement error simulator
+void lbv_normal_rmeasure (double *y, double *x, double *p, 
+			   int *obsindex, int *stateindex, int *parindex, int *covindex,
+			   int ncovar, double *covar, 
+			   double t) 
+{
+  double sd = fabs(ETA);
+  DatSPA = rnorm(SPA,sd);
+  DatSPJ = rnorm(SPJ,sd);
+}
 
 // the process model:
 // an SIR model with Euler-multinomial step,
@@ -81,7 +77,7 @@ void sir_euler_simulator (double *x, const double *p,
 			  int covdim, const double *covar, 
 			  double t, double dt)
 {
-  int nrate = 30; 			// number of rates
+  int nrate = 29; 			// number of rates
   double rate[nrate];		// transition rates
   double trans[nrate];		// transition numbers
   double N = x[0]+x[1]+x[2]+x[3]+x[4]+x[5]+x[6]+x[7]+x[8]+x[9]+x[10]+x[11];		// population size
@@ -103,13 +99,13 @@ const double pi = 3.14159265359;
   rate[2] = DELTA*(N/K);			// density dept mortality - Juvenile 
   rate[3] = GAMMA; // aging from SUSJM to adult SUS
   rate[4] = DELTA*(N/K); // density dept mortality - juvenile
-  rate[5] = RHO*BETA*(1+ZETA*cos(2*pi*t))*(INFJ+INFA)/N;			// sus to exposed- infectious route
-  rate[6] = (1-RHO)*BETA*(1+ZETA*cos(2*pi*t))*(INFJ+INFA)/N; 		// sus to exposed- recovered route
+  rate[5] = RHO*BETA*(INFJ+INFA)/N;			// sus to exposed- infectious route
+  rate[6] = (1-RHO)*BETA*(INFJ+INFA)/N; 		// sus to exposed- recovered route
   rate[7] = (KAPPA*(1/sqrt((1/S)*pi)*exp(-pow((cos(pi*OMEGA*t-PHI)),2)/(1/S))))*(SUSA+ERA);		// approx delta function birth into susceptible class
   rate[8] = DELTA*(N/K);			// density dept mortality - Juvenile 
   rate[9] = EPSILON;		// aging from juv to ad
-  rate[10] = RHO*BETA*(1+ZETA*cos(2*pi*t))*(INFJ+INFA)/N;			// sus to exposed- infectious route
-  rate[11] = (1-RHO)*BETA*(1+ZETA*cos(2*pi*t))*(INFJ+INFA)/N; 		// sus to exposed- recovered route
+  rate[10] = RHO*BETA*(INFJ+INFA)/N;			// sus to exposed- infectious route
+  rate[11] = (1-RHO)*BETA*(INFJ+INFA)/N; 		// sus to exposed- recovered route
   rate[12] = DELTA*(N/K);			// density dept mortality - Juvenile   
   rate[13] = SIGMA;		// incubation rate
   rate[14] = DELTA*(N/K);			// density dept mortality - Juvenile 
@@ -119,15 +115,14 @@ const double pi = 3.14159265359;
   rate[18] = DELTA*(N/K);			// density dept mortality - Juvenile
   rate[19] = EPSILON;		// aging from juv to ad
   rate[20] = MU*(N/K);			// density dept mortality - Adult
-  rate[21] = RHO*BETA*(1+ZETA*cos(2*pi*t))*(INFJ+INFA)/N;			// sus to exposed- infectious route
-  rate[22] = (1-RHO)*BETA*(1+ZETA*cos(2*pi*t))*(INFJ+INFA)/N; 		// sus to exposed- recovered route
+  rate[21] = RHO*BETA*(INFJ+INFA)/N;			// sus to exposed- infectious route
+  rate[22] = (1-RHO)*BETA*(INFJ+INFA)/N; 		// sus to exposed- recovered route
   rate[23] = MU*(N/K);			// density dept mortality - Adult
   rate[24] = SIGMA;		// incubation rate
   rate[25] = MU*(N/K);			// density dept mortality - adult
   rate[26] = TAU; // seroconversion rate 
   rate[27] = ALPHA;		// disease induced mortality
   rate[28] = MU*(N/K);			// density dept mortality - adult
-  rate[29] = LAMBDA; // rate of loss of adult immunity
     
   // compute the transition numbers // in reulmult, first # is transitions, state name, rate # trans start, trans name at start
   trans[0] = rpois(rate[0]*dt);	// births are Poisson // is this correct still with ADF birth pulse?
@@ -143,7 +138,7 @@ const double pi = 3.14159265359;
   (*reulmult)(2,EIA,&rate[23],dt,&trans[23]); // euler-multinomial exits from EIA class
   (*reulmult)(2,ERA,&rate[25],dt,&trans[25]); // euler-multinomial exits from ERA class
   (*reulmult)(1,INFA,&rate[27],dt,&trans[27]); // euler-multinomial exits from INFA class
-  (*reulmult)(2,RECA,&rate[28],dt,&trans[28]); // euler-multinomial exits from RECA class
+  (*reulmult)(1,RECA,&rate[28],dt,&trans[28]); // euler-multinomial exits from RECA class
 
   // balance the equations
   MDAJ += trans[0]-trans[1]-trans[2]; // IN births; OUT loss mda, juv mortality
@@ -153,10 +148,11 @@ const double pi = 3.14159265359;
   ERJ += trans[6]+trans[11]-trans[14]-trans[15]-trans[16]; // IN inf from both SUSJ classes; OUT serocon, juv mort, aging
   INFJ += trans[13]-trans[17]; // IN incubation; OUT dis induced mortality
   RECJ += trans[15]-trans[18]-trans[19]; // IN seroconversion; OUT aging and juv mortality
-  SUSA += trans[3]+trans[9]+trans[29]-trans[20]-trans[21]-trans[22]; // IN aging from both SUSJ classes and loss of adult immunity; OUT adult mort, inf * 2 classes
+  SUSA += trans[3]+trans[9]-trans[20]-trans[21]-trans[22]; // IN aging from both SUSJ classes; OUT adult mort, inf * 2 classes
   EIA += trans[21]-trans[23]-trans[24]; // IN from adult SUS exposed; OUT incubation and adult mortality
   ERA += trans[22]+trans[16]-trans[25]-trans[26]; // IN from adult SUS exposed & aging; OUT serconverstion and adult mortality
   INFA += trans[24]-trans[27]; // IN from incubation; OUT dis induced mortality
-  RECA += trans[26]+trans[18]-trans[28]-trans[29]; // IN from serconverstion & aging; OUT from death and loss of immunity
-
+  RECA += trans[26]+trans[18]-trans[28]; // IN from serconverstion & aging; OUT from death
+  SPA = RECA/(SUSA+EIA+ERA+RECA); // adult seroprevalence
+  SPJ = RECJ/(SUSJ+EIJ+ERJ+RECJ); // juvenile seroprevalence
 }
