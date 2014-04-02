@@ -13,9 +13,9 @@ setwd("~/GitHub/LBV") # revise as necessary
 library(pomp)
 
 #Compiling C code and loading the dll
-dyn.unload("lbvseirNoSeasFreqMeasure.dll")
+# dyn.unload("lbvseirNoSeasFreqMeasure.dll")
 
-system("R CMD SHLIB lbvseirNoSeasFreqMeasure.c")
+# system("R CMD SHLIB lbvseirNoSeasFreqMeasure.c")
 
 dyn.load("lbvseirNoSeasFreqMeasure.dll")
 
@@ -68,9 +68,10 @@ params <- c(
   ERA.0=1000,INFA.0=5000, RECA.0=50000,
   SPA.0=0.4994506,SPJ.0=0.5882353)
 
-sim <- simulate(sir,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # double check seed in this
+sim <- simulate(sir,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # 
 class(sir) # pomp object
 class(sim) # data frame - even if I remove "as.data.frame" in the above code (sim)
+sim <- simulate(sir,params=c(params),nsim=1,states=T,obs=F)#,as.data.frame=T) # saves as an array
 
 plot(sim$time,sim$SUSJ,type="l")
 points(sim$time,sim$RECJ,col="green",type="l")
@@ -129,7 +130,13 @@ pomp(
 lbv.sim <- simulate(lbv,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # double check seed in this
 class(lbv.sim)
 
-pf<-pfilter(lbv,params=params,Np=100)
+plot(lbv.sim$time,lbv.sim$SPA,type="l",col="green")
+points(lbv.sim$time,lbv.sim$SPJ,type="l",col="red")
+
+#########
+# if can save lbv as a pomp object (rather than a data.frame...
+
+pf<-pfilter(lbv,params=c(params),Np=1000)
 
 #####
 #setwd("~/Cambridge/CSU 2013/LBV model/lbvmodels/new_models_sept/deterministic")
