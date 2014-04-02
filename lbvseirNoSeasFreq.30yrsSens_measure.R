@@ -8,7 +8,7 @@ rm(list=ls())
 
 ## pomp test run lbv
 getwd()
-setwd("~/Cambridge/CSU 2013/LBV Model/lbvmodels/new_models_sept")
+setwd("~/GitHub/LBV") # revise as necessary
 
 library(pomp)
 
