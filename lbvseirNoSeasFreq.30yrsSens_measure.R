@@ -51,7 +51,7 @@ params <- c(
   MU=0.000510492,
   DELTA=0.002312247,
   ALPHA=0.2,
-  RHO=0.017,
+  RHO=0.017*2, # * 5 is to ensure infection persists
   SIGMA=1/48,
   K=1000000,
   EPSILON=1/365,
@@ -66,12 +66,13 @@ params <- c(
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
   ERA.0=1000,INFA.0=5000, RECA.0=50000,
-  SPA.0=0.4994506,SPJ.0=0.5882353)
+  SPA.0=0.4994506,SPJ.0=0.5882353) # this adds to the initial conditions given the state variables
 
 sim <- simulate(sir,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # 
 class(sir) # pomp object
 class(sim) # data frame - even if I remove "as.data.frame" in the above code (sim)
-sim <- simulate(sir,params=c(params),nsim=1,states=T,obs=F)#,as.data.frame=T) # saves as an array
+#sim <- simulate(sir,params=c(params),nsim=1,states=T,obs=F)#,as.data.frame=T) # saves as an array
+# pf<-pfilter(sim,params=c(params),Np=1000) # won't work, because this is a data frame, not pomp object
 
 plot(sim$time,sim$SUSJ,type="l")
 points(sim$time,sim$RECJ,col="green",type="l")
@@ -82,27 +83,16 @@ plot(sim$time,sim$SUSA,type="l")
 points(sim$time,sim$RECA,col="green",type="l")
 points(sim$time,sim$INFA,col="red",type="l")
 
-plot(sim$time,sim$SPA,type="l",col="green")
+plot(sim$time,sim$SPA,type="l",col="green",ylim=c(0,1))
 points(sim$time,sim$SPJ,type="l",col="red")
 #########################################################
-## code dmeasure
-#lbv.meas.dens <-function(y,x,t,params,log,...){
-#    eta<-params["eta"]
-##  ## state at time t
-#  SPA<-x["SPA"]
-#  SPJ<-x["SPJ"]
-#  ### obs at time t
-#  DatSPA<-y["DatSPA"]
-#  DatSPJ<-y["DatSPJ"]
-#  # likelihood
-#  f <- -(dnorm(x=DatSPA,mean=SPA,log=TRUE)+dnorm(x=DatSPJ,mean=SPJ,log=TRUE))
-#  return(f)
-#}
-
+# to try another way round the issue of a data frame being created 
+# use the simulated model results above as the data directly
 pomp(
   data = data.frame(
-    time=seq(from=0,to=365*25,by=1),  # time for simulations to run
-    X = NA # dummy variables
+    time=sim$time,  # time for simulations to run
+    DatSPJ = sim$SPJ, # simulated data
+    DatSPA = sim$SPA # simulated data
   ),
   times="time",
   t0=0,
@@ -127,38 +117,29 @@ pomp(
   }
 ) -> lbv
 
-lbv.sim <- simulate(lbv,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # double check seed in this
-class(lbv.sim)
-
-plot(lbv.sim$time,lbv.sim$SPA,type="l",col="green")
-points(lbv.sim$time,lbv.sim$SPJ,type="l",col="red")
+class(lbv)
 
 #########
 # if can save lbv as a pomp object (rather than a data.frame...
+# params to use and estimate
 
 pf<-pfilter(lbv,params=c(params),Np=1000)
 
 #####
-#setwd("~/Cambridge/CSU 2013/LBV model/lbvmodels/new_models_sept/deterministic")
-## data
-#
-#lbv<-read.csv("lbv_data.csv")
+
+lbv<-read.csv("lbv_data.csv")
 #
 #
-#DatSPJ<-lbv$DRECJ/(lbv$DRECJ+lbv$DSUSJ)
-#DatSPA<-lbv$DRECA/(lbv$DRECA+lbv$DSUSA)
+DatSPJ<-lbv$DRECJ/(lbv$DRECJ+lbv$DSUSJ)
+DatSPA<-lbv$DRECA/(lbv$DRECA+lbv$DSUSA)
 #
-#lbv.new<-cbind(lbv,juv_sp,ad_sp)
-#dim(lbv.new)
-#lbv.sp<-cbind(lbv.new[,c(1,6,7)])
-#lbv.sp
-
-#tend<-lbv.sp[1]
+lbv.new<-cbind(lbv,juv_sp,ad_sp)
+lbv.sp<-cbind(lbv.new[,c(1,6,7)])
+lbv.sp
 
 
-## to check can run for >1 simulation
-# sims <- simulate(sir,params=c(params),seed=3493885L,nsim=10,states=T,obs=F,as.data.frame=T) # 100 simulations of 1 parameter set.
 
+######################### rest of this code requires the MLE estimate for the rho and beta params
 ## for LHS parameter set
 ## Calling requisite libraries for parallel computing
 
