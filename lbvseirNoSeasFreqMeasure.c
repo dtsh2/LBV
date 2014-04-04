@@ -53,8 +53,8 @@ void lbv_normal_dmeasure (double *lik, double *y, double *x, double *p, int give
 {
   double sd = fabs(ETA);
   double f = 0.0;
-  f += (ISNA(DatSPA)) ? 0.0 : dnorm(DatSPA,SPA,sd,1);
-  f += (ISNA(DatSPJ)) ? 0.0 : dnorm(DatSPJ,SPJ,sd,1);
+  f +=  dnorm(DatSPA,SPA,sd,1);
+  f +=  dnorm(DatSPJ,SPJ,sd,1);
   *lik = (give_log) ? f : exp(f);
 }
 
