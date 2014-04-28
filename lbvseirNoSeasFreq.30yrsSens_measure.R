@@ -143,20 +143,20 @@ pf<-pfilter(lbv,params=c(params),Np=1000)
 #####
 
 
-lbv<-read.csv("lbv_data.csv")
+lbvd<-read.csv("test_data.csv")
 #
 #
-DatSPJ<-lbv$DRECJ/(lbv$DRECJ+lbv$DSUSJ)
-DatSPA<-lbv$DRECA/(lbv$DRECA+lbv$DSUSA)
-times<-lbv$cumulative_time
+DatSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
+DatSPA<-lbvd$DRECA/(lbvd$DRECA+lbvd$DSUSA)
+times<-lbvd$cumulative_time
 #
-lbv.new<-cbind(DatSPJ,DatSPA,times)
+lbv.new<-cbind(times,DatSPJ,DatSPA)
 #lbv.sp<-cbind(lbv.new[,c(1,6,7)])
 #lbv.sp
 
 pomp(
   data = data.frame(
-    time=times,  # time for simulations to run
+    time=lbv.new[,1],  # time for simulations to run
     #  SUSJ = NA,
     #  MDAJ = NA,
     #  SUSJM = NA,
@@ -171,8 +171,8 @@ pomp(
     #  RECA = NA,
     #  SPA = NA,
     #  SPJ = NA,
-    DatSPA = DatSPA,
-    DatSPJ = DatSPJ
+    DatSPJ = lbv.new[,2],
+    DatSPA = lbv.new[,3]
     #  X = NA # dummy variables
   ),
   times='time',
@@ -188,7 +188,7 @@ pomp(
   dmeasure="lbv_normal_dmeasure",
   ## the order of the state variables assumed in the native routines:
   statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-  obsnames=c("DatSPA","DatSPJ"),
+  obsnames=c("DatSPJ","DatSPA"),
   ## the order of the parameters assumed in the native routines:
   paramnames=c("BETA","MU","DELTA","ALPHA","RHO","SIGMA","K","EPSILON","TAU","PSI","KAPPA","S","OMEGA","PHI","GAMMA","ETA",
                "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
@@ -199,12 +199,12 @@ pomp(
   }
 ) -> lbvdat
 
-
+plot(lbvdat)
 #########
 # if can save lbv as a pomp object (rather than a data.frame...
 # params to use and estimate
 
-pf<-pfilter(lbvdat,params=c(params),Np=1000)
+pf<-pfilter(lbvdat,params=c(params),Np=2500,max.fail=1000,tol=1e-20)
 
 #####
 

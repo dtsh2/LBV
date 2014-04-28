@@ -21,11 +21,11 @@ setwd("~/GitHub/LBV") # revise as necessary
 library(pomp)
 
 #Compiling C code and loading the dll
- dyn.unload("lbvseirNoSeasFreqTwoParsMeasure.dll")
+ dyn.unload("lbvseirNoSeasFreqTwoParsMeasurePars.dll")
 
- system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasure.c")
+ system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasurePars.c")
 
-dyn.load("lbvseirNoSeasFreqTwoParsMeasure.dll")
+dyn.load("lbvseirNoSeasFreqTwoParsMeasurePars.dll")
 
 pomp(
   data = data.frame(
@@ -136,13 +136,188 @@ points(lbv.sim$time,lbv.sim$SPJ,type="l",col="red")
 
 #########
 # if can save lbv as a pomp object (rather than a data.frame...
+## LBV SEIR model with Frequency-dept transmission
+## 25 years Sens Analysis
+
+pomp(
+  data = data.frame(
+    time=seq(from=0,to=365*25,by=1),  # time for simulations to run
+    #  SUSJ = NA,
+    #  MDAJ = NA,
+    #  SUSJM = NA,
+    #  EIJ = NA,
+    #  ERJ = NA,
+    #  INFJ  = NA,
+    #  RECJ  = NA,
+    #  SUSA  = NA,
+    #  EIA = NA,
+    #  ERA = NA,
+    #  INFA  = NA,
+    #  RECA = NA,
+    #  SPA = NA,
+    #  SPJ = NA,
+    DatSPA = NA,
+    DatSPJ = NA
+    #  X = NA # dummy variables
+  ),
+  times="time",
+  t0=0,
+  ## native routine for the process simulator:
+  rprocess=euler.sim(
+    step.fun="sir_euler_simulator",
+    delta.t=1,
+    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
+    ## name of the shared-object library containing the PACKAGE="pomp",
+  ),
+  rmeasure="lbv_normal_rmeasure",
+  dmeasure="lbv_normal_dmeasure",
+  ## the order of the state variables assumed in the native routines:
+  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
+  obsnames=c("DatSPA","DatSPJ"),
+  ## the order of the parameters assumed in the native routines:
+  paramnames=c("BETA","RHO","ETA",
+               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
+  initializer=function(params,t0,statenames,...){
+    x0<-params[paste(statenames,".0",sep="")]
+    names(x0)<-statenames
+    return(x0)
+  }
+) -> sir
+
+params <- c(
+  BETA=18,
+  RHO=0.017*2, # * 5 is to ensure infection persists
+  ETA=0.01,# check data
+  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
+  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
+  ERA.0=1000,INFA.0=5000, RECA.0=50000,
+  SPA.0=0.4994506,SPJ.0=0.5882353) # this adds to the initial conditions given the state variables
+
+sim <- simulate(sir,params=params,seed=3493885L,nsim=1,states=F,obs=F)#,as.data.frame=T) # 
+class(sir) # pomp object
+class(sim) # data frame - even if I remove "as.data.frame" in the above code (sim)
+#sim <- simulate(sir,params=c(params),nsim=1,states=T,obs=F)#,as.data.frame=T) # saves as an array
+# pf<-pfilter(sim,params=c(params),Np=1000) # won't work, because this is a data frame, not pomp object
+#
+#plot(sim$time,sim$SUSJ,type="l")
+#points(sim$time,sim$RECJ,col="green",type="l")
+#points(sim$time,sim$MDA,col="brown",type="l")
+#points(sim$time,sim$INFJ,col="red",type="l")
+#
+#plot(sim$time,sim$SUSA,type="l")
+#points(sim$time,sim$RECA,col="green",type="l")
+#points(sim$time,sim$INFA,col="red",type="l")
+#
+#plot(sim$time,sim$SPA,type="l",col="green")
+#points(sim$time,sim$SPJ,type="l",col="red")
+#########################################################
+# to try another way round the issue of a data frame being created 
+# use the simulated model results above as the data directly
+pomp(
+  sim,
+  # time=seq(from=0,to=365*25,by=1),
+  #  t0=0,
+  #  ## native routine for the process simulator:
+  #  rprocess=euler.sim(
+  #    step.fun="sir_euler_simulator",
+  #    delta.t=1,
+  #    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
+  #    ## name of the shared-object library containing the PACKAGE="pomp",
+  #  ),
+  rmeasure="lbv_normal_rmeasure",
+  dmeasure="lbv_normal_dmeasure"#,
+  ## the order of the state variables assumed in the native routines:
+  #  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
+  ## the order of the parameters assumed in the native routines:
+  #  obsnames=c("DatSPA","DatSPJ"),
+  #  paramnames=c("BETA","MU","DELTA","ALPHA","RHO","SIGMA","K","EPSILON","TAU","PSI","KAPPA","S","OMEGA","PHI","GAMMA","ETA",
+  #               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
+  #  initializer=function(params,t0,statenames,...){
+  #    x0<-params[paste(statenames,".0",sep="")]
+  #    names(x0)<-statenames
+  #    return(x0)
+  #  }
+) -> lbv
+
+class(lbv)
+
+#########
+# if can save lbv as a pomp object (rather than a data.frame...
+# params to use and estimate
 
 pf<-pfilter(lbv,params=c(params),Np=1000)
 
-## this crashes r
+#####
+
+
+lbvd<-read.csv("test_data.csv")
+#
+#
+DatSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
+DatSPA<-lbvd$DRECA/(lbvd$DRECA+lbvd$DSUSA)
+times<-lbvd$cumulative_time
+#
+lbv.new<-cbind(times,DatSPJ,DatSPA)
+#lbv.sp<-cbind(lbv.new[,c(1,6,7)])
+#lbv.sp
+
+pomp(
+  data = data.frame(
+    time=lbv.new[,1],  # time for simulations to run
+    #  SUSJ = NA,
+    #  MDAJ = NA,
+    #  SUSJM = NA,
+    #  EIJ = NA,
+    #  ERJ = NA,
+    #  INFJ  = NA,
+    #  RECJ  = NA,
+    #  SUSA  = NA,
+    #  EIA = NA,
+    #  ERA = NA,
+    #  INFA  = NA,
+    #  RECA = NA,
+    #  SPA = NA,
+    #  SPJ = NA,
+    DatSPJ = lbv.new[,2],
+    DatSPA = lbv.new[,3]
+    #  X = NA # dummy variables
+  ),
+  times='time',
+  t0=0,
+  ## native routine for the process simulator:
+  rprocess=euler.sim(
+    step.fun="sir_euler_simulator",
+    delta.t=1,
+    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
+    ## name of the shared-object library containing the PACKAGE="pomp",
+  ),
+  rmeasure="lbv_normal_rmeasure",
+  dmeasure="lbv_normal_dmeasure",
+  ## the order of the state variables assumed in the native routines:
+  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
+  obsnames=c("DatSPJ","DatSPA"),
+  ## the order of the parameters assumed in the native routines:
+  paramnames=c("BETA","RHO","ETA",
+               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
+  initializer=function(params,t0,statenames,...){
+    x0<-params[paste(statenames,".0",sep="")]
+    names(x0)<-statenames
+    return(x0)
+  }
+) -> lbvdat
+
+plot(lbvdat)
+#########
+# if can save lbv as a pomp object (rather than a data.frame...
+# params to use and estimate
+
+pf<-pfilter(lbvdat,params=c(params),Np=2500,max.fail=1000,tol=1e-20)
+
+#pf<-pfilter(lbv,params=c(params),Np=1000)
+## try with actual data:
 ## try nlf
 out <- nlf(
-  lbv,
+  lbvdat,
   start=c(  BETA=18,
             RHO=0.017,
             ETA=1,# check data
@@ -154,7 +329,171 @@ out <- nlf(
   est=c("BETA","RHO"),
   lags=c(1,2)
 )
-##### this crashes r too!
+##### this does not crash R
+
+#pf<-pfilter(lbv,params=c(params),Np=1000)
+## try with actual data:
+
+lbvd<-read.csv("lbv_data.csv")
+#
+#
+DatSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
+DatSPA<-lbvd$DRECA/(lbvd$DRECA+lbvd$DSUSA)
+times<-lbvd$cumulative_time
+#
+lbv.new<-cbind(times,DatSPJ,DatSPA)
+#lbv.sp<-cbind(lbv.new[,c(1,6,7)])
+#lbv.sp
+
+pomp(
+  data = data.frame(
+    time=lbv.new[,1],  # time for simulations to run
+    #  SUSJ = NA,
+    #  MDAJ = NA,
+    #  SUSJM = NA,
+    #  EIJ = NA,
+    #  ERJ = NA,
+    #  INFJ  = NA,
+    #  RECJ  = NA,
+    #  SUSA  = NA,
+    #  EIA = NA,
+    #  ERA = NA,
+    #  INFA  = NA,
+    #  RECA = NA,
+    #  SPA = NA,
+    #  SPJ = NA,
+    DatSPJ = lbv.new[,2],
+    DatSPA = lbv.new[,3]
+    #  X = NA # dummy variables
+  ),
+  times='time',
+  t0=0,
+  ## native routine for the process simulator:
+  rprocess=euler.sim(
+    step.fun="sir_euler_simulator",
+    delta.t=1,
+    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
+    ## name of the shared-object library containing the PACKAGE="pomp",
+  ),
+  rmeasure="lbv_normal_rmeasure",
+  dmeasure="lbv_normal_dmeasure",
+  ## the order of the state variables assumed in the native routines:
+  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
+  obsnames=c("DatSPJ","DatSPA"),
+  ## the order of the parameters assumed in the native routines:
+  paramnames=c("BETA","RHO","ETA",
+               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
+  initializer=function(params,t0,statenames,...){
+    x0<-params[paste(statenames,".0",sep="")]
+    names(x0)<-statenames
+    return(x0)
+  }
+) -> lbvdat
+
+plot(lbvdat)
+#########
+
+pf<-pfilter(lbvdat,params=c(params),Np=6000,max.fail=1000,tol=1e-20)
+
+## try nlf
+out <- nlf(
+  lbvdat,
+  start=c(  BETA=18,
+            RHO=0.017,
+            ETA=1,# check data
+            SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
+            RECJ.0=10000,SUSA.0=50000, EIA.0=100,
+            ERA.0=1000,INFA.0=5000, RECA.0=50000,
+            SPA.0=0.4994506,SPJ.0=0.5882353),
+  partrans=TRUE,
+  est=c("BETA","RHO"),
+  lags=c(1,2)
+)
+##### this does not crash R, but doesn't work for irregularly spaced data
+
+BetaV = seq(from=0.001,to=15,by=1)  # range of beta
+RhoV = seq(from=0.01,to=1, by=0.1) # ramge of rho
+parametset<- expand.grid(BetaV,RhoV)
+dim(parametset)
+EtaV<-rep(1,length(parametset[,1]))
+paramsV<-cbind(BetaV,RhoV,EtaV)
+nonV = matrix(c(
+  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
+  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
+  ERA.0=1000,INFA.0=5000, RECA.0=50000,
+  SPA.0=0.4994506,SPJ.0=0.5882353),
+  ncol=14,
+  nrow=length(parametset[,1]),
+  byrow=T) #binded with non-varying parameters
+dimnames(nonV)[[2]]=c("SUSJ.0","MDAJ.0","SUSJM.0","EIJ.0",
+                            "ERJ.0","INFJ.0","RECJ.0","SUSA.0",
+                            "EIA.0","ERA.0","INFA.0","RECA.0",
+                      "SPA.0","SPJ.0") # naming non-varying columns
+
+parsV<-cbind(paramsV,nonV)
+
+BETA = as.numeric(parsV[,1])
+RHO = as.numeric(parsV[,2])
+ETA = as.numeric(parsV[,3])
+SUSJ.0 = as.numeric(parsV[,4])
+MDAJ.0 = as.numeric(parsV[,5])
+SUSJM.0 = as.numeric(parsV[,6])
+EIJ.0 = as.numeric(parsV[,7])
+ERJ.0 = as.numeric(parsV[,8])
+INFJ.0 = as.numeric(parsV[,9])
+RECJ.0 = as.numeric(parsV[,10])
+SUSA.0 = as.numeric(parsV[,11])
+EIA.0 = as.numeric(parsV[,12])
+ERA.0 = as.numeric(parsV[,13])
+INFA.0 = as.numeric(parsV[,14])
+RECA.0 = as.numeric(parsV[,15])
+SPA.0 = as.numeric(parsV[,16])
+SPJ.0 = as.numeric(parsV[,17])
+
+params<-cbind(
+  BETA,
+  RHO,
+  ETA,
+  SUSJ.0,
+  MDAJ.0,
+  SUSJM.0,
+  EIJ.0,
+  ERJ.0,
+  INFJ.0,
+  RECJ.0,
+  SUSA.0,
+  EIA.0,
+  ERA.0,
+  INFA.0,
+  RECA.0,
+  SPA.0,
+  SPJ.0
+)
+
+results<-array(NA,dim=c(length(parametset[,1]),3))
+
+for (j in 1:length(params[,1])){
+  results[j,1]<-logLik(pfilter(lbvdat,params=c(params[j,]),Np=6000,max.fail=1000,tol=1e-20))
+  #pf<-pfilter(lbvdat,params=c(params[j,]),Np=6000,max.fail=1000,tol=1e-20)
+results[j,2:3]<-#c(logLik(pf))}
+#
+c(params[j,1],params[j,2])
+}
+
+##
+
+library(akima)
+library(lattice)
+
+zzg <- interp(results[,2], #
+              results[,3], # 
+              results[,1],
+              duplicate=T)
+image(zzg,ann=F)
+contour(zzg,add=T,labcex=1)
+
+plot(results[,1])
+
 ##### to here..
 
 ## for LHS parameter set
