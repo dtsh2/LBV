@@ -125,20 +125,6 @@ points(lbv.sim$time,lbv.sim$SPJ,type="l",col="red")
 pomp(
   data = data.frame(
     time=seq(from=0,to=365*25,by=1),  # time for simulations to run
-    #  SUSJ = NA,
-    #  MDAJ = NA,
-    #  SUSJM = NA,
-    #  EIJ = NA,
-    #  ERJ = NA,
-    #  INFJ  = NA,
-    #  RECJ  = NA,
-    #  SUSA  = NA,
-    #  EIA = NA,
-    #  ERA = NA,
-    #  INFA  = NA,
-    #  RECA = NA,
-    #  SPA = NA,
-    #  SPJ = NA,
     DatSPA = NA,
     DatSPJ = NA
     #  X = NA # dummy variables
