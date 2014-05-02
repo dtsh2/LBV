@@ -23,7 +23,7 @@ library(pomp)
 #Compiling C code and loading the dll
  dyn.unload("lbvseirNoSeasFreqTwoParsMeasure.dll")
 
-# system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasure.c")
+ system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasure.c")
 
 dyn.load("lbvseirNoSeasFreqTwoParsMeasure.dll")
 

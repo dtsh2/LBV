@@ -89,7 +89,7 @@ const double KAPPA=0.004109589;
 const double S=14.35;
 const double OMEGA=0.002739726;
 const double PHI=0.0;
-const double GAMMA=0.003225806;
+const double GAMMA=0.003773585;
   
 // in C --- pow(a,b) to do a^b 
 
