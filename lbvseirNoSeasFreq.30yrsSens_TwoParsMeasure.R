@@ -23,7 +23,7 @@ library(pomp)
 #Compiling C code and loading the dll
  dyn.unload("lbvseirNoSeasFreqTwoParsMeasure.dll")
 
- system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasure.c")
+# system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasure.c")
 
 dyn.load("lbvseirNoSeasFreqTwoParsMeasure.dll")
 
@@ -56,70 +56,70 @@ pomp(
   }
 ) -> sir
 
-params <- c(
-  BETA=18,
-  RHO=0.3,
-  ETA=0.1,
-  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-  ERA.0=1000,INFA.0=5000, RECA.0=50000,
-  SPA.0=0.4994506,SPJ.0=0.5882353)
-
-sim <- simulate(sir,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # 
-class(sir) # pomp object
-class(sim) # data frame - change states, obs and data.frame if want pomp obj
-
-plot(sim$time,sim$SUSJ,type="l")
-points(sim$time,sim$RECJ,col="green",type="l")
-points(sim$time,sim$MDA,col="brown",type="l")
-points(sim$time,sim$INFJ,col="red",type="l")
-
-plot(sim$time,sim$SUSA,type="l")
-points(sim$time,sim$RECA,col="green",type="l")
-points(sim$time,sim$INFA,col="red",type="l")
-
-plot(sim$time,sim$SPA,type="l",col="green")
-points(sim$time,sim$SPJ,type="l",col="red")
+#params <- c(
+#  BETA=18,
+#  RHO=0.3,
+#  ETA=0.1,
+#  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
+#  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
+#  ERA.0=1000,INFA.0=5000, RECA.0=50000,
+#  SPA.0=0.4994506,SPJ.0=0.5882353)
+#
+#sim <- simulate(sir,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # 
+#class(sir) # pomp object
+#class(sim) # data frame - change states, obs and data.frame if want pomp obj
+#
+#plot(sim$time,sim$SUSJ,type="l")
+#points(sim$time,sim$RECJ,col="green",type="l")
+#points(sim$time,sim$MDA,col="brown",type="l")
+#points(sim$time,sim$INFJ,col="red",type="l")
+#
+#plot(sim$time,sim$SUSA,type="l")
+#points(sim$time,sim$RECA,col="green",type="l")
+#points(sim$time,sim$INFA,col="red",type="l")
+#
+#plot(sim$time,sim$SPA,type="l",col="green")
+#points(sim$time,sim$SPJ,type="l",col="red")
 #########################################################
 ## code dmeasure
-
-pomp(
-  data = data.frame(
-    time=sim$time,  # time for simulations to run
-    DatSPA = sim$SPA,
-    DatSPJ = sim$SPJ# dummy variables
-  ),
-  times="time",
-  t0=0,
-  ## native routine for the process simulator:
-  rprocess=euler.sim(
-    step.fun="sir_euler_simulator",
-    delta.t=1,
-    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
-    ## name of the shared-object library containing the PACKAGE="pomp",
-  ),
-  rmeasure="lbv_normal_rmeasure",
-  dmeasure="lbv_normal_dmeasure",
-  ## the order of the state variables assumed in the native routines:
-  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-  ## the order of the parameters assumed in the native routines:
-  paramnames=c("BETA",#"MU","DELTA","ALPHA",
-               "RHO",#"SIGMA","K","EPSILON","TAU","PSI","KAPPA","S","OMEGA","PHI","GAMMA",
-               "ETA",
-               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-  initializer=function(params,t0,statenames,...){
-    x0<-params[paste(statenames,".0",sep="")]
-    names(x0)<-statenames
-    return(x0)
-  }
-) -> lbv
-
-lbv.sim <- simulate(lbv,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # double check seed in this
-class(lbv.sim)
-
-plot(lbv.sim$time,lbv.sim$SPA,type="l",col="green")
-points(lbv.sim$time,lbv.sim$SPJ,type="l",col="red")
-
+# double check
+# pomp(
+#  data = data.frame(
+#    time=sim$time,  # time for simulations to run
+#    DatSPA = sim$SPA,
+#    DatSPJ = sim$SPJ# dummy variables
+#  ),
+#  times="time",
+#  t0=0,
+#  ## native routine for the process simulator:
+#  rprocess=euler.sim(
+#    step.fun="sir_euler_simulator",
+#    delta.t=1,
+#    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
+#    ## name of the shared-object library containing the PACKAGE="pomp",
+#  ),
+#  rmeasure="lbv_normal_rmeasure",
+#  dmeasure="lbv_normal_dmeasure",
+#  ## the order of the state variables assumed in the native routines:
+#  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
+#  ## the order of the parameters assumed in the native routines:
+#  paramnames=c("BETA",#"MU","DELTA","ALPHA",
+#               "RHO",#"SIGMA","K","EPSILON","TAU","PSI","KAPPA","S","OMEGA","PHI","GAMMA",
+#               "ETA",
+#               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
+#  initializer=function(params,t0,statenames,...){
+#    x0<-params[paste(statenames,".0",sep="")]
+#    names(x0)<-statenames
+#    return(x0)
+#  }
+#) -> lbv
+#
+#lbv.sim <- simulate(lbv,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # double check seed in this
+#class(lbv.sim)
+#
+#plot(lbv.sim$time,lbv.sim$SPA,type="l",col="green")
+#points(lbv.sim$time,lbv.sim$SPJ,type="l",col="red")
+#
 #########
 
 pomp(
@@ -320,7 +320,7 @@ out <- nlf(
   lbvdat,
   start=c(  BETA=18,
             RHO=0.017,
-            ETA=1,# check data
+            ETA=0.1,# check data
             SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
             RECJ.0=10000,SUSA.0=50000, EIA.0=100,
             ERA.0=1000,INFA.0=5000, RECA.0=50000,
@@ -331,12 +331,12 @@ out <- nlf(
 )
 ##### this does not crash R, but doesn't work for irregularly spaced data
 
-BetaV = seq(from=0.001,to=20,by=0.1)  # range of beta
-RhoV = seq(from=0.001,to=1, by=0.05) # ramge of rho
+BetaV = seq(from=0.001,to=40,by=1)  # range of beta
+RhoV = seq(from=0.001,to=1, by=0.1) # range of rho
 parametset<- expand.grid(BetaV,RhoV)
 dim(parametset)
-EtaV<-rep(1,length(parametset[,1]))
-paramsV<-cbind(BetaV,RhoV,EtaV)
+EtaV<-rep(0.1,length(parametset[,1]))
+paramsV<-cbind(parametset,EtaV)
 nonV = matrix(c(
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
@@ -407,18 +407,39 @@ library(lattice)
 library(tgp)
 library(rgl)
 
-zzg <- interp.loess(results[,2], #
-              results[,3], # 
-              results[,1],
-              duplicate=T)
-image(zzg,ann=F)
-contour(zzg,add=F,labcex=1,drawlabels=F)
+rholab<-expression(symbol(rho))
+betalab<-expression(symbol(beta))
 
-plot(results[,1])
+zzg <- interp(x=results[,2], #
+              y=results[,3], # 
+              z=results[,1],
+              duplicate=T,grid.len=c(50,50))#,span=0.1)
+image(zzg,ann=T,xlim=c(0,30),ylim=c(0,0.5), ylab=rholab,xlab=betalab)
+contour(zzg,add=T,labcex=1,drawlabels=T,nlevels=50)
+#contour(zzg,add=F,labcex=1,drawlabels=T,nlevels=100)
+
+surface(zzg,#col ="#FFFFFF",
+        ylab=rholab,xlab=betalab,
+        #zlim=c(0,10),
+        labcex=1)
+contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=50)
+
+#plot(results[,1])
 min(results[,1])
 results[results[,1]==min(results[,1]),]
+minLL<-as.data.frame(t(results[results[,1]==min(results[,1]),]))
+names(minLL)<-c("negll","Beta","Rho")
+points(x=minLL$Beta,y=minLL$Rho,pch=16,col="pink")
 
-##### to here..
+resdf<-as.data.frame(results)#,value=cut(results[,1],breaks=seq(min(results[,1]),max(results[,1]),25)))
+names(resdf)<-c("nll","beta","rho")#,"NegLL")
+library(ggplot2)
+p <- ggplot(resdf) + 
+  geom_tile(aes(beta,rho,fill=nll)) + 
+  geom_contour(aes(x=beta,y=rho,z=nll), colour="white",bins=25) 
+p
+
+## to here..
 
 ## for LHS parameter set
 ## Calling requisite libraries for parallel computing
@@ -486,33 +507,33 @@ dimnames(hypercube)[[2]]=c("beta","mu","delta","alpha","rho",
                            #"phi")  # named columns with parameter names
 
 mins = c( 				    ## set mins for each parameters-exclude those not to be varied if any
-  beta= 1,		     # transmission 
+  beta= 1.8,		     # transmission 
   mu= 0.0000510492,  			# natural mortality from my CMR study
   delta= 0.0002312247, 			# juvenile mortality rate
   alpha= 0.02,			# dis induced mortality
-  rho= 0.001,				# probability that exposure/infection will lead to infection & infectiousness (and dead)
+  rho= 0.03,				# probability that exposure/infection will lead to infection & infectiousness (and dead)
   sigma= 0.002083333,			# incubation period 
   K= 100000,			      # K, however, population size fluctuates...up to >1*10^6
 #  epsilon= 1/10,				# rate of aging for those juveniles, should be ~ annual
   tau= 0.004166667, 	      # rate of seroconversion
   psi= 10,			######### this will need to be 1/psi for analysis 
   #k=,        			# nb this is birth rate which halved
-  s=77.82/10)#,   # very synchronous
+  s=14.83/10)#,   # very synchronous
 #  phi=0.01)
 
 maxs = c( 				    ## set mins for each parameters-exclude those not to be varied if any
-  beta= 30,           # transmission
+  beta= 180,           # transmission
   mu= 0.00510492,  	          # natural mortality from my CMR study
   delta= 0.02312247,            # juvenile mortality rate
   alpha= 0.9,		    # dis induced mortality
-  rho= 0.4,			    # probability 
+  rho= 0.99,			    # probability 
   sigma= 0.2,          # incubation period 
   K= 100000*10,			    # K, however, population size fluctuates...up to >1*10^6
 #  epsilon= 1*10,	                # rate of aging for those juveniles, should be ~ annual
-  tau= 0.2,         # rate of seroconversion
+  tau= 0.4167,         # rate of seroconversion
   psi= 200,      ###### will need to be 1/psi for the model
   #k=1.5,                       # nb this is peak
-  s=77.82*2)#,
+  s=14.83*10)#,
 #  phi=0.99)                      
 
 diffs=maxs-mins ## range of each variable
@@ -535,7 +556,7 @@ nonVarying = matrix(c(
   epsilon= 1/365,	# rate of aging for those juveniles, should be ~ annual - per cap per year
   omega= 1/365, # for pb per year - 1 per year
   phi= 0.0, # for timing - ...
-  k=1.5,
+  k=1.5/365,
   eta=0.1,
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
@@ -956,11 +977,11 @@ nonVarying = matrix(c(
   TAU=1/24,
   KAPPA=1.5/365,
   PSI = 0.1,
-  S=77.82,
+  S=14.83,
   OMEGA=1/365,
   PHI=0.5,
-  GAMMA=0.0028,
-  ETA=1,
+  GAMMA=0.0037758,
+  ETA=0.1,
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
   ERA.0=1000,INFA.0=5000, RECA.0=50000,
