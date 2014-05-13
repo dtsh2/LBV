@@ -155,7 +155,7 @@ pomp(
 
 params <- c(
   BETA=18,
-  RHO=0.017*2, # * 5 is to ensure infection persists
+  RHO=0.3, # * 5 is to ensure infection persists
   ETA=0.01,# check data
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
@@ -176,7 +176,7 @@ pomp(
 ) -> lbv
 
 class(lbv)
-
+plot(lbv)
 #########
 # if can save lbv as a pomp object (rather than a data.frame...
 # params to use and estimate
@@ -331,8 +331,8 @@ out <- nlf(
 )
 ##### this does not crash R, but doesn't work for irregularly spaced data
 
-BetaV = seq(from=0.001,to=40,by=1)  # range of beta
-RhoV = seq(from=0.001,to=1, by=0.1) # range of rho
+BetaV = seq(from=0.001,to=40,by=0.5)  # range of beta
+RhoV = seq(from=0.001,to=1, by=0.0125) # range of rho
 parametset<- expand.grid(BetaV,RhoV)
 dim(parametset)
 EtaV<-rep(0.1,length(parametset[,1]))
@@ -681,7 +681,7 @@ results<-array(NA,dim=c(100,1,5))
 ## change # sims
 for (j in 1:length(paramset[,1])){
 out <-simulate(sir,params=c(paramset[j,]),
-                seed=1493885L,nsim=10,states=T,obs=F,as.data.frame=T) #
+                seed=1493885L,nsim=100,states=T,obs=F,as.data.frame=T) #
 outres <- out[seq(from=9126,to=912600,by=9126),] # select last #s
 N = array(0,c(100,5)) # same dimensions as No. runs * outputs I want
 for (i in 1:100){ # each stochastic run
@@ -694,11 +694,11 @@ for (i in 1:100){ # each stochastic run
 N[is.na(N)]<- 0
 ## now average
 M = array(0,c(1,5))
-M[1] = mean(N[1:10,1]) # population size
-M[2] = mean(N[1:10,2]) # prevalence
-M[3] = mean(N[1:10,3]) # adult seroprevalence
-M[4] = mean(N[1:10,4]) # mean pop persistence
-M[5] = mean(N[1:10,5]) # mean path persistence
+M[1] = mean(N[1:100,1]) # population size
+M[2] = mean(N[1:100,2]) # prevalence
+M[3] = mean(N[1:100,3]) # adult seroprevalence
+M[4] = mean(N[1:100,4]) # mean pop persistence
+M[5] = mean(N[1:100,5]) # mean path persistence
 rm(out)
 results[j,,]<-M
 }
@@ -944,7 +944,7 @@ dimnames(res)[[2]]<-c("Population","Prevalence",
 
 # write.csv(res, "results_25yr1000Sens2.csv", row.names=F, na="")
 
-res<-cbind(X[,1],#X[,2],
+res<-cbind(#X[,1],#X[,2],
            #X[,3],
 #            X[,4], # pop extinction
            X[,5])
@@ -952,7 +952,7 @@ res<-cbind(X[,1],#X[,2],
 
 results=prcc(par.mat=hypercube,model.output=res ## results matrix here...
                ,routine="blower" # NB removed par names so uses symbols, add [par.names="",]
-             ,output.names=c("Population size",
+             ,output.names=c(#"Population size",
                             #"Prevalence",
                              #"Adult seroprevalence",
                              #"Population persistence",
