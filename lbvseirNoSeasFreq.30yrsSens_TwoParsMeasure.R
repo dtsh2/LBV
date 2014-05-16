@@ -56,20 +56,20 @@ pomp(
   }
 ) -> sir
 
-#params <- c(
-#  BETA=18,
-#  RHO=0.3,
-#  ETA=0.1,
-#  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-#  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-#  ERA.0=1000,INFA.0=5000, RECA.0=50000,
-#  SPA.0=0.4994506,SPJ.0=0.5882353)
+params <- c(
+  BETA=18,
+  RHO=0.3,
+  ETA=0.1,
+  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
+  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
+ ERA.0=1000,INFA.0=5000, RECA.0=50000,
+  SPA.0=0.4994506,SPJ.0=0.5882353)
 #
-#sim <- simulate(sir,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # 
-#class(sir) # pomp object
-#class(sim) # data frame - change states, obs and data.frame if want pomp obj
+sim <- simulate(sir,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # 
+class(sir) # pomp object
+class(sim) # data frame - change states, obs and data.frame if want pomp obj
 #
-#plot(sim$time,sim$SUSJ,type="l")
+plot(sim$time,sim$SUSJ,type="l")
 #points(sim$time,sim$RECJ,col="green",type="l")
 #points(sim$time,sim$MDA,col="brown",type="l")
 #points(sim$time,sim$INFJ,col="red",type="l")
@@ -406,6 +406,7 @@ library(akima)
 library(lattice)
 library(tgp)
 library(rgl)
+library(fields)
 
 rholab<-expression(symbol(rho))
 betalab<-expression(symbol(beta))
@@ -413,10 +414,13 @@ betalab<-expression(symbol(beta))
 zzg <- interp(x=results[,2], #
               y=results[,3], # 
               z=results[,1],
-              duplicate=T,grid.len=c(50,50))#,span=0.1)
+              duplicate=T)#,grid.len=c(50,50))#,span=0.1)
 image(zzg,ann=T,xlim=c(0,30),ylim=c(0,0.5), ylab=rholab,xlab=betalab)
 contour(zzg,add=T,labcex=1,drawlabels=T,nlevels=50)
 #contour(zzg,add=F,labcex=1,drawlabels=T,nlevels=100)
+
+par(omi=c(1,1,0.5,1))
+par(mai=c(0.8,0.8,0.8,0.8))
 
 surface(zzg,#col ="#FFFFFF",
         ylab=rholab,xlab=betalab,
@@ -430,6 +434,11 @@ results[results[,1]==min(results[,1]),]
 minLL<-as.data.frame(t(results[results[,1]==min(results[,1]),]))
 names(minLL)<-c("negll","Beta","Rho")
 points(x=minLL$Beta,y=minLL$Rho,pch=16,col="pink")
+points(x=zzg[[1]][33],y=zzg[[2]][14],pch=16,col="yellow")
+
+which(zzg[[3]] == min(zzg[[3]]))
+zzg[[1]][593]
+zzg[[2]][593]
 
 resdf<-as.data.frame(results)#,value=cut(results[,1],breaks=seq(min(results[,1]),max(results[,1]),25)))
 names(resdf)<-c("nll","beta","rho")#,"NegLL")
@@ -438,9 +447,11 @@ p <- ggplot(resdf) +
   geom_tile(aes(beta,rho,fill=nll)) + 
   geom_contour(aes(x=beta,y=rho,z=nll), colour="white",bins=25) 
 p
-
+p = p + geom_point(aes(y=0.33, x=32.4),colour="red")
+p
 ## to here..
-
+write.csv(resdf,file="pfilterres.csv")
+test<-read.csv("pfilterres.csv",header=T)
 ## for LHS parameter set
 ## Calling requisite libraries for parallel computing
 #
