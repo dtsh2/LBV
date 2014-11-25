@@ -182,7 +182,7 @@ plot(lbv)
 # if can save lbv as a pomp object (rather than a data.frame...
 # params to use and estimate
 
-pf<-pfilter(lbv,params=c(params),Np=1000)
+# pf<-pfilter(lbv,params=c(params),Np=1000)
 
 #####
 #
@@ -338,8 +338,8 @@ out <- nlf(
 BetaV = seq(from=0.001,to=40,by=0.5)  # range of beta
 RhoV = seq(from=0.001,to=1, by=0.0125) # range of rho
 #
-BetaV = seq(from=1,to=40,by=4)  # range of beta
-RhoV = seq(from=0.01,to=1, by=0.1) # range of rho
+# BetaV = seq(from=1,to=40,by=4)  # range of beta
+# RhoV = seq(from=0.01,to=1, by=0.1) # range of rho
 #
 parametset<- expand.grid(BetaV,RhoV)
 dim(parametset)
@@ -503,9 +503,9 @@ pomp(
 ) -> sir
 
 params <- c(
-  BETA=18,
+  BETA=37,
   RHO=0.3,
-  CHI=0.001,
+  CHI=0.0001,
   ETA=0.1,
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
@@ -601,7 +601,7 @@ pomp(
 ) -> sir
 
 params <- c(
-  BETA=18,
+  BETA=0.15,
   RHO=0.3, # * 5 is to ensure infection persists
   CHI=0.0001,
   ETA=0.01,# check data
@@ -766,9 +766,9 @@ plot(lbvdat)
 #coef(pf)
 
 ## use larger range - just for demo/code for now (11/11/1)
-BetaV = seq(from=1,to=40,by=1)  # range of beta
-RhoV = seq(from=0.001,to=1, by=0.025) # range of rho
-ChiV = seq(from=0.0000001,to=0.01, by=0.00025) # range of chi
+BetaV = seq(from=0.01,to=40,by=0.5)  # range of beta
+RhoV = seq(from=0.001,to=1, by=0.25) # range of rho
+ChiV = seq(from=0.0000001,to=0.001, by=0.000025) # range of chi
 #
 #BetaV = seq(from=1,to=40,by=10)  # range of beta
 #RhoV = seq(from=0.01,to=1, by=0.25) # range of rho
@@ -836,7 +836,7 @@ params<-cbind(
 results<-array(NA,dim=c(length(parametset[,1]),3))
 ## nb check # particles - reduced for training
 for (j in 1:length(params[,1])){
-  results[j,1]<-logLik(pfilter(lbvdat,params=c(params[j,]),Np=100,max.fail=1000,tol=1e-20))
+  results[j,1]<-logLik(pfilter(lbvdat,params=c(params[j,]),Np=1000,max.fail=1000,tol=1e-20))
   #pf<-pfilter(lbvdat,params=c(params[j,]),Np=6000,max.fail=1000,tol=1e-20)
   results[j,2:3]<-#c(logLik(pf))}
     #
@@ -885,7 +885,6 @@ zzg <- interp(rest$rho,rest$im,rest$V1)
 
 image(zzg,ann=T,ylab=rholab,xlab=chilab)
 contour(zzg,add=T,labcex=1,drawlabels=T,nlevels=10)
-######################################################
 
 #####################################
 
@@ -896,12 +895,27 @@ surface(zzg,#col ="#FFFFFF",
         xlab=rholab,ylab=chilab,
         #zlim=c(0,10),
         labcex=1)
-contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=50)
+#contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=50)
 
 #plot(results[,1])
 min(results[,1])
 results[results[,1]==min(results[,1]),]
-minLL<-as.data.frame(t(results[results[,1]==min(results[,1]),]))
+minLL<-as.data.frame((results[results[,1]==min(results[,1]),]))
+#names(minLL)<-c("negll","Beta","Rho","Chi")
+points(x=minLL$rho,y=minLL$im,pch=16,col="pink")
+#####################################################
+# ADD DETAIL
+surface(zzg,#col ="#FFFFFF",
+        xlab=rholab,ylab=chilab,
+        ylim=c(0,4e-04),xlim=c(0.1,0.5),
+        zlim=c(-550,-200),
+        labcex=1)
+contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=20)
+
+#plot(results[,1])
+min(results[,1])
+results[results[,1]==min(results[,1]),]
+minLL<-as.data.frame((results[results[,1]==min(results[,1]),]))
 #names(minLL)<-c("negll","Beta","Rho","Chi")
 points(x=minLL$rho,y=minLL$im,pch=16,col="pink")
 
@@ -922,9 +936,9 @@ points(x=minLL$rho,y=minLL$im,pch=16,col="pink")
 ##
 ## simulate using the estimated pars
 params <- c(
-  BETA=21,
-  RHO=0.26, # * 5 is to ensure infection persists
-  CHI=0.075,
+  BETA=38.01,
+  RHO=0.251, # * 5 is to ensure infection persists
+  CHI=7.51e-05,
   ETA=0.01,# check data
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
