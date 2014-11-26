@@ -33,53 +33,46 @@
 #define DatSPA	(y[obsindex[0]]) // data adult seroprev
 #define DatSPJ	(y[obsindex[1]]) // data juvenile seroprev
 
+// bivariate normal measurement error density
+// void lbv_normal_dmeasure (double *lik, double *y, double *x, double *p, int give_log, 
+//			   int *obsindex, int *stateindex, int *parindex, int *covindex,
+//			   int covdim, double *covar, double t) 
+//{
+ // double sd = fabs(ETA);
+ // double f = 0.0;
+ // f +=  dnorm(DatSPA,SPA,sd,1);
+ // f +=  dnorm(DatSPJ,SPJ,sd,1);
+ // *lik = (give_log) ? f : exp(f);
+//}
+
 void binomial_dmeasure (double *lik, double *y, double *x, double *p, int give_log,
-
 			  int *obsindex, int *stateindex, int *parindex, int *covindex,
-
 			  int ncovars, double *covars, double t)
 {
-
-  *lik = dbinom(REPORTS,nearbyint(CASE),RHO,give_log);
-
+  f += dbinom(DRECA,POPA,RHOA);
+   f += dbinom(DRECJ,POPJ,RHOJ);
+ *lik = (give_log) ? f : exp(f);
 }
-
-
 
 void binomial_rmeasure (double *y, double *x, double *p,
- 
 			  int *obsindex, int *stateindex, int *parindex, int *covindex,
-
 			  int ncovars, double *covars, double t)
 {
-
-  REPORTS = rbinom(nearbyint(CASE),RHO);
+  DRECA = rbinom(POPA,RHOA);
+  DRECA = rbinom(POPA,RHOA);
 }
 
-
-
-// bivariate normal measurement error density
-void lbv_normal_dmeasure (double *lik, double *y, double *x, double *p, int give_log, 
-			   int *obsindex, int *stateindex, int *parindex, int *covindex,
-			   int covdim, double *covar, double t) 
-{
-  double sd = fabs(ETA);
-  double f = 0.0;
-  f +=  dnorm(DatSPA,SPA,sd,1);
-  f +=  dnorm(DatSPJ,SPJ,sd,1);
-  *lik = (give_log) ? f : exp(f);
-}
 
 // bivariate normal measurement error simulator
-void lbv_normal_rmeasure (double *y, double *x, double *p, 
-			   int *obsindex, int *stateindex, int *parindex, int *covindex,
-			   int ncovar, double *covar, 
-			   double t) 
-{
-  double sd = fabs(ETA);
-  DatSPA = rnorm(SPA,sd);
-  DatSPJ = rnorm(SPJ,sd);
-}
+//void lbv_normal_rmeasure (double *y, double *x, double *p, 
+//			   int *obsindex, int *stateindex, int *parindex, int *covindex,
+//			   int ncovar, double *covar, 
+//			   double t) 
+//{
+ // double sd = fabs(ETA);
+ // DatSPA = rnorm(SPA,sd);
+ // DatSPJ = rnorm(SPJ,sd);
+//}
 
 // the process model:
 // an SIR model with Euler-multinomial step,
