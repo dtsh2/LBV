@@ -9,7 +9,7 @@
 
 #define BETA        (p[parindex[0]]) // transmission rate
 #define RHOA			(p[parindex[1]]) // prob
-#define RHOJ			(p[parindex[1]]) // prob
+#define RHOJ			(p[parindex[2]]) // prob
 
 // define states
 
@@ -32,6 +32,8 @@
 
 #define DRECA	(y[obsindex[0]]) // data adult sero pos
 #define DRECJ	(y[obsindex[1]]) // data juvenile sero pos
+#define DPOPA	(y[obsindex[2]]) // data adult sampled
+#define DPOPJ	(y[obsindex[3]]) // data juvenile sampled
 
 // bivariate normal measurement error density
 // void lbv_normal_dmeasure (double *lik, double *y, double *x, double *p, int give_log, 
@@ -52,8 +54,8 @@ void binomial_dmeasure (double *lik, double *y, double *x, double *p, int give_l
   double RHOA = fabs(RHOA);
   double RHOJ = fabs(RHOJ);
   double f = 0.0;
-   f += dbinom(DRECA,POPA,RHOA);
-   f += dbinom(DRECJ,POPJ,RHOJ);
+   f += dbinom(DRECA,DPOPA,RHOA);
+   f += dbinom(DRECJ,DPOPJ,RHOJ);
  *lik = (give_log) ? f : exp(f);
 }
 
@@ -63,8 +65,8 @@ void binomial_rmeasure (double *y, double *x, double *p,
 {
 double RHOA = fabs(RHOA);
   double RHOJ = fabs(RHOJ);  
-  DRECA = rbinom(POPA,RHOA);
-  DRECJ = rbinom(POPA,RHOJ);
+  DRECA = rbinom(DPOPA,RHOA);
+  DRECJ = rbinom(DPOPJ,RHOJ);
 }
 
 
