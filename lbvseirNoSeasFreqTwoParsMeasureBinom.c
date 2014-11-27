@@ -8,8 +8,8 @@
 // define parameters
 
 #define BETA        (p[parindex[0]]) // transmission rate
-#define RHO			(p[parindex[1]]) // prob infectious
-#define ETA			(p[parindex[2]]) // error in measurement models
+#define RHOA			(p[parindex[1]]) // prob
+#define RHOJ			(p[parindex[1]]) // prob
 
 // define states
 
@@ -30,8 +30,8 @@
 
 // define observations
 
-#define DatSPA	(y[obsindex[0]]) // data adult seroprev
-#define DatSPJ	(y[obsindex[1]]) // data juvenile seroprev
+#define DRECA	(y[obsindex[0]]) // data adult sero pos
+#define DRECJ	(y[obsindex[1]]) // data juvenile sero pos
 
 // bivariate normal measurement error density
 // void lbv_normal_dmeasure (double *lik, double *y, double *x, double *p, int give_log, 
@@ -49,7 +49,10 @@ void binomial_dmeasure (double *lik, double *y, double *x, double *p, int give_l
 			  int *obsindex, int *stateindex, int *parindex, int *covindex,
 			  int ncovars, double *covars, double t)
 {
-  f += dbinom(DRECA,POPA,RHOA);
+  double RHOA = fabs(RHOA);
+  double RHOJ = fabs(RHOJ);
+  double f = 0.0;
+   f += dbinom(DRECA,POPA,RHOA);
    f += dbinom(DRECJ,POPJ,RHOJ);
  *lik = (give_log) ? f : exp(f);
 }
@@ -58,8 +61,10 @@ void binomial_rmeasure (double *y, double *x, double *p,
 			  int *obsindex, int *stateindex, int *parindex, int *covindex,
 			  int ncovars, double *covars, double t)
 {
+double RHOA = fabs(RHOA);
+  double RHOJ = fabs(RHOJ);  
   DRECA = rbinom(POPA,RHOA);
-  DRECA = rbinom(POPA,RHOA);
+  DRECJ = rbinom(POPA,RHOJ);
 }
 
 
