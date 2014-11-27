@@ -8,8 +8,6 @@
 // define parameters
 
 #define BETA        (p[parindex[0]]) // transmission rate
-#define RHOA			(p[parindex[1]]) // prob
-#define RHOJ			(p[parindex[2]]) // prob
 
 // define states
 
