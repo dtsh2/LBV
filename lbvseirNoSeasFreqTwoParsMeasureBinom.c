@@ -8,6 +8,8 @@
 // define parameters
 
 #define BETA        (p[parindex[0]]) // transmission rate
+#define RHO        (p[parindex[1]]) // transmission rate
+
 
 // define states
 
@@ -51,11 +53,11 @@ void binomial_dmeasure (double *lik, double *y, double *x, double *p, int give_l
 			  int *obsindex, int *stateindex, int *parindex, int *covindex,
 			  int ncovars, double *covars, double t)
 {
-  double DSPA = fabs(DSPA);
-  double DSPJ = fabs(DSPJ);
+  double ppa = fabs(DSPA);
+  double ppj = fabs(DSPJ);
   double f = 0.0;
-   f += dbinom(DRECA,DPOPA,DSPA);
-   f += dbinom(DRECJ,DPOPJ,DPSJ);
+   f += dbinom(DRECA,DPOPA,ppa);
+   f += dbinom(DRECJ,DPOPJ,ppj);
  *lik = (give_log) ? f : exp(f);
 }
 
@@ -63,10 +65,10 @@ void binomial_rmeasure (double *y, double *x, double *p,
 			  int *obsindex, int *stateindex, int *parindex, int *covindex,
 			  int ncovars, double *covars, double t)
 {
-  double DSPA = fabs(DSPA);
-  double DSPJ = fabs(DSPJ); 
-  DRECA = rbinom(DPOPA,DSPA);
-  DRECJ = rbinom(DPOPJ,DSPJ);
+  double ppa = fabs(DSPA);
+  double ppj = fabs(DSPJ); 
+  DRECA = rbinom(DPOPA,ppa);
+  DRECJ = rbinom(DPOPJ,ppj);
 }
 
 
