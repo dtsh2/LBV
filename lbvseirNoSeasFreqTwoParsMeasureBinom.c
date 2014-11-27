@@ -34,6 +34,8 @@
 #define DRECJ	(y[obsindex[1]]) // data juvenile sero pos
 #define DPOPA	(y[obsindex[2]]) // data adult sampled
 #define DPOPJ	(y[obsindex[3]]) // data juvenile sampled
+#define DSPA	(y[obsindex[4]]) // adult seroprevalence
+#define DSPJ	(y[obsindex[5]]) // juvenile seroprevalence
 
 // bivariate normal measurement error density
 // void lbv_normal_dmeasure (double *lik, double *y, double *x, double *p, int give_log, 
@@ -51,11 +53,11 @@ void binomial_dmeasure (double *lik, double *y, double *x, double *p, int give_l
 			  int *obsindex, int *stateindex, int *parindex, int *covindex,
 			  int ncovars, double *covars, double t)
 {
-  double RHOA = fabs(RHOA);
-  double RHOJ = fabs(RHOJ);
+  double DSPA = fabs(DSPA);
+  double DSPJ = fabs(DSPJ);
   double f = 0.0;
-   f += dbinom(DRECA,DPOPA,RHOA);
-   f += dbinom(DRECJ,DPOPJ,RHOJ);
+   f += dbinom(DRECA,DPOPA,DSPA);
+   f += dbinom(DRECJ,DPOPJ,DPSJ);
  *lik = (give_log) ? f : exp(f);
 }
 
@@ -63,10 +65,10 @@ void binomial_rmeasure (double *y, double *x, double *p,
 			  int *obsindex, int *stateindex, int *parindex, int *covindex,
 			  int ncovars, double *covars, double t)
 {
-double RHOA = fabs(RHOA);
-  double RHOJ = fabs(RHOJ);  
-  DRECA = rbinom(DPOPA,RHOA);
-  DRECJ = rbinom(DPOPJ,RHOJ);
+  double DSPA = fabs(DSPA);
+  double DSPJ = fabs(DSPJ); 
+  DRECA = rbinom(DPOPA,DSPA);
+  DRECJ = rbinom(DPOPJ,DSPJ);
 }
 
 
