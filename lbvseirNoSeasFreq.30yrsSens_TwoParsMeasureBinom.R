@@ -21,10 +21,10 @@ setwd("~/GitHub/LBV") # revise as necessary
 library(pomp)
 
 #Compiling C code and loading the dll
- dyn.unload("lbvseirNoSeasFreqTwoParsMeasure.dll")
-dyn.unload("lbvseirNoSeasFreqTwoParsImMeasure.dll")
+# dyn.unload("lbvseirNoSeasFreqTwoParsMeasure.dll")
+#dyn.unload("lbvseirNoSeasFreqTwoParsImMeasure.dll")
 
-system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasureBinom.c")
+# system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasureBinom.c")
 
 dyn.load("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
 
@@ -126,8 +126,12 @@ plot(sim$time,sim$SUSJ,type="l")
 pomp(
   data = data.frame(
     time=seq(from=0,to=365*25,by=1),  # time for simulations to run
-    DatSPA = NA,
-    DatSPJ = NA
+    DSPA = NA,
+    DSPJ = NA,
+    DRECA = NA,
+    DRECJ = NA,
+    DPOPA = NA,
+    DPOPJ = NA
     #  X = NA # dummy variables
   ),
   times="time",
@@ -139,11 +143,12 @@ pomp(
     #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
     ## name of the shared-object library containing the PACKAGE="pomp",
   ),
-  rmeasure="lbv_normal_rmeasure",
-  dmeasure="lbv_normal_dmeasure",
+  rmeasure="binomial_rmeasure",
+  dmeasure="binomial_dmeasure",
   ## the order of the state variables assumed in the native routines:
   statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-  obsnames=c("DatSPA","DatSPJ"),
+  obsnames=c("DSPA","DSPJ","DRECA","DRECJ","DPOPA","DPOPJ"),
+
   ## the order of the parameters assumed in the native routines:
   paramnames=c("BETA","RHO","ETA",
                "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
@@ -167,111 +172,13 @@ sim <- simulate(sir,params=params,seed=3493885L,nsim=1,states=F,obs=F)#,as.data.
 class(sir) # pomp object
 class(sim) # data frame - even if I remove "as.data.frame" in the above code (sim)
 
-#########################################################
-# to try another way round the issue of a data frame being created 
-# use the simulated model results above as the data directly
-pomp(
-  sim,
-  rmeasure="lbv_normal_rmeasure",
-  dmeasure="lbv_normal_dmeasure"#,
-) -> lbv
-
-class(lbv)
-plot(lbv)
-#########
-# if can save lbv as a pomp object (rather than a data.frame...
-# params to use and estimate
-
-# pf<-pfilter(lbv,params=c(params),Np=1000)
-
-#####
-#
-#lbvd<-read.csv("test_data.csv")
-#
-#
-#DatSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
-#DatSPA<-lbvd$DRECA/(lbvd$DRECA+lbvd$DSUSA)
-#times<-lbvd$cumulative_time
-#
-#lbv.new<-cbind(times,DatSPJ,DatSPA)
-#lbv.sp<-cbind(lbv.new[,c(1,6,7)])
-#lbv.sp
-#
-#pomp(
-#  data = data.frame(
-#    time=lbv.new[,1],  # time for simulations to run
-    #  SUSJ = NA,
-    #  MDAJ = NA,
-    #  SUSJM = NA,
-    #  EIJ = NA,
-    #  ERJ = NA,
-    #  INFJ  = NA,
-    #  RECJ  = NA,
-    #  SUSA  = NA,
-    #  EIA = NA,
-    #  ERA = NA,
-    #  INFA  = NA,
-    #  RECA = NA,
-    #  SPA = NA,
-    #  SPJ = NA,
-#    DatSPJ = lbv.new[,2],
-#    DatSPA = lbv.new[,3]
-    #  X = NA # dummy variables
-#  ),
-#  times='time',
-#  t0=0,
-  ## native routine for the process simulator:
-#  rprocess=euler.sim(
-#    step.fun="sir_euler_simulator",
-#    delta.t=1,
-    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
-    ## name of the shared-object library containing the PACKAGE="pomp",
-#  ),
-#  rmeasure="lbv_normal_rmeasure",
-#  dmeasure="lbv_normal_dmeasure",
-#  ## the order of the state variables assumed in the native routines:
-#  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-#  obsnames=c("DatSPJ","DatSPA"),
-  ## the order of the parameters assumed in the native routines:
-#  paramnames=c("BETA","RHO","ETA",
-#               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-#  initializer=function(params,t0,statenames,...){
-#    x0<-params[paste(statenames,".0",sep="")]
-#    names(x0)<-statenames
-#    return(x0)
-#  }
-#) -> lbvdat
-
-#plot(lbvdat)
-#########
-# if can save lbv as a pomp object (rather than a data.frame...
-# params to use and estimate
-
-#pf<-pfilter(lbvdat,params=c(params),Np=2500,max.fail=1000,tol=1e-20)
-
-#pf<-pfilter(lbv,params=c(params),Np=1000)
-## try with actual data:
-## try nlf
-#out <- nlf(
-#  lbvdat,
-#  start=c(  BETA=18,
-#            RHO=0.017,
-#            ETA=1,# check data
-#            SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-#            RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-#            ERA.0=1000,INFA.0=5000, RECA.0=50000,
-#            SPA.0=0.4994506,SPJ.0=0.5882353),
-#  partrans=TRUE,
-#  est=c("BETA","RHO"),
-#  lags=c(1,2)
-#)
-##### this does not crash R
-#
-#pf<-pfilter(lbv,params=c(params),Np=1000)
 ## try with actual data:
 
 lbvd<-read.csv("lbv_data_plustime.csv")
 #
+#
+
+######### TO HERE ######################
 #
 DatSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
 DatSPA<-lbvd$DRECA/(lbvd$DRECA+lbvd$DSUSA)
