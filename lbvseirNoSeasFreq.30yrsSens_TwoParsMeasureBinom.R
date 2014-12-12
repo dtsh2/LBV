@@ -24,10 +24,10 @@ library(pomp)
 # dyn.unload("lbvseirNoSeasFreqTwoParsMeasure.dll")
 #dyn.unload("lbvseirNoSeasFreqTwoParsImMeasure.dll")
 
-# system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasureBinom.c")
+ system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasureBinom.c")
 
 dyn.load("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
-
+# dyn.unload("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
 pomp(
   data = data.frame(
     time=seq(from=0,to=365*25,by=1),  # time for simulations to run
@@ -48,7 +48,7 @@ pomp(
   ## the order of the parameters assumed in the native routines:
   paramnames=c("BETA",
                "RHO",
-               "ETA",
+              # "ETA",
                "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
   initializer=function(params,t0,statenames,...){
     x0<-params[paste(statenames,".0",sep="")]
@@ -82,46 +82,6 @@ plot(sim$time,sim$SUSJ,type="l")
 #plot(sim$time,sim$SPA,type="l",col="green")
 #points(sim$time,sim$SPJ,type="l",col="red")
 #########################################################
-## code dmeasure
-# double check
-# pomp(
-#  data = data.frame(
-#    time=sim$time,  # time for simulations to run
-#    DatSPA = sim$SPA,
-#    DatSPJ = sim$SPJ# dummy variables
-#  ),
-#  times="time",
-#  t0=0,
-#  ## native routine for the process simulator:
-#  rprocess=euler.sim(
-#    step.fun="sir_euler_simulator",
-#    delta.t=1,
-#    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
-#    ## name of the shared-object library containing the PACKAGE="pomp",
-#  ),
-#  rmeasure="lbv_normal_rmeasure",
-#  dmeasure="lbv_normal_dmeasure",
-#  ## the order of the state variables assumed in the native routines:
-#  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-#  ## the order of the parameters assumed in the native routines:
-#  paramnames=c("BETA",#"MU","DELTA","ALPHA",
-#               "RHO",#"SIGMA","K","EPSILON","TAU","PSI","KAPPA","S","OMEGA","PHI","GAMMA",
-#               "ETA",
-#               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-#  initializer=function(params,t0,statenames,...){
-#    x0<-params[paste(statenames,".0",sep="")]
-#    names(x0)<-statenames
-#    return(x0)
-#  }
-#) -> lbv
-#
-#lbv.sim <- simulate(lbv,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # double check seed in this
-#class(lbv.sim)
-#
-#plot(lbv.sim$time,lbv.sim$SPA,type="l",col="green")
-#points(lbv.sim$time,lbv.sim$SPJ,type="l",col="red")
-#
-#########
 
 pomp(
   data = data.frame(
@@ -150,7 +110,7 @@ pomp(
   obsnames=c("DSPA","DSPJ","DRECA","DRECJ","DPOPA","DPOPJ"),
 
   ## the order of the parameters assumed in the native routines:
-  paramnames=c("BETA","RHO","ETA",
+  paramnames=c("BETA","RHO",#"ETA",
                "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
   initializer=function(params,t0,statenames,...){
     x0<-params[paste(statenames,".0",sep="")]
@@ -162,37 +122,40 @@ pomp(
 params <- c(
   BETA=18,
   RHO=0.3, # * 5 is to ensure infection persists
-  ETA=0.01,# check data
+  #ETA=0.01,# check data
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
   ERA.0=1000,INFA.0=5000, RECA.0=50000,
   SPA.0=0.4994506,SPJ.0=0.5882353) # this adds to the initial conditions given the state variables
 
-sim <- simulate(sir,params=params,seed=3493885L,nsim=1,states=F,obs=F)#,as.data.frame=T) # 
+sim <- simulate(sir,params=params,seed=3493885L,nsim=1,states=F,obs=F,as.data.frame=T) # 
 class(sir) # pomp object
 class(sim) # data frame - even if I remove "as.data.frame" in the above code (sim)
 
 ## try with actual data:
 
 lbvd<-read.csv("lbv_data_plustime.csv")
-#
-#
+DSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
+DSPA<-lbvd$DRECA/(lbvd$DRECA+lbvd$DSUSA)
+DPOPA<-lbvd$DRECA+lbvd$DSUSA
+DPOPJ<-lbvd$DRECJ+lbvd$DSUSJ
+DRECA<-lbvd$DRECA
+DRECJ<-lbvd$DRECJ
 
-######### TO HERE ######################
-#
-DatSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
-DatSPA<-lbvd$DRECA/(lbvd$DRECA+lbvd$DSUSA)
 times<-lbvd$cumulative_time
+
 #
-lbv.new<-cbind(times,DatSPJ,DatSPA)
+lbv.new<-cbind(times,DSPJ,DSPA,DRECJ,DRECA,DPOPJ,DPOPA)
 
 pomp(
   data = data.frame(
     time=lbv.new[,1],  # time for simulations to run
-
-    DatSPJ = lbv.new[,2],
-    DatSPA = lbv.new[,3]
-    
+    DSPJ = lbv.new[,2],
+    DSPA = lbv.new[,3],
+    DRECJ = lbv.new[,4],
+    DRECA = lbv.new[,5],
+    DPOPJ = lbv.new[,6],
+    DPOPA = lbv.new[,7]
     ),
   times='time',
   t0=0,
@@ -203,13 +166,13 @@ pomp(
     #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
     ## name of the shared-object library containing the PACKAGE="pomp",
   ),
-  rmeasure="lbv_normal_rmeasure",
-  dmeasure="lbv_normal_dmeasure",
+  rmeasure="binomial_rmeasure",
+  dmeasure="binomial_dmeasure",
   ## the order of the state variables assumed in the native routines:
   statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-  obsnames=c("DatSPJ","DatSPA"),
+  obsnames=c("DSPJ","DSPA","DRECJ","DRECA","DPOPJ","DPOPA"),
   ## the order of the parameters assumed in the native routines:
-  paramnames=c("BETA","RHO","ETA",
+  paramnames=c("BETA","RHO",#"ETA",
                "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
   initializer=function(params,t0,statenames,...){
     x0<-params[paste(statenames,".0",sep="")]
@@ -225,23 +188,6 @@ pf<-pfilter(lbvdat,params=c(params),Np=1000,max.fail=1000,tol=1e-20)
 logLik(pf)
 coef(pf)
 
-
-## try nlf
-out <- nlf(
-  lbvdat,
-  start=c(  BETA=18,
-            RHO=0.017,
-            ETA=0.1,# check data
-            SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-            RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-            ERA.0=1000,INFA.0=5000, RECA.0=50000,
-            SPA.0=0.4994506,SPJ.0=0.5882353),
-  partrans=TRUE,
-  est=c("BETA","RHO"),
-  lags=c(1,2)
-)
-##### this does not crash R, but doesn't work for irregularly spaced data
-## use larger range - just for demo/code for now (11/11/1)
 BetaV = seq(from=0.001,to=40,by=0.5)  # range of beta
 RhoV = seq(from=0.001,to=1, by=0.0125) # range of rho
 #

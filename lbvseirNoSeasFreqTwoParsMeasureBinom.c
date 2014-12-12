@@ -56,8 +56,8 @@ void binomial_dmeasure (double *lik, double *y, double *x, double *p, int give_l
   double ppa = fabs(DSPA);
   double ppj = fabs(DSPJ);
   double f = 0.0;
-   f += dbinom(DRECA,DPOPA,ppa,TRUE); // we want this to be on the log scale
-   f += dbinom(DRECJ,DPOPJ,ppj,TRUE);
+   f += dbinom(DRECA,DPOPA,ppa,FALSE); // we want this to be on the log scale
+   f += dbinom(DRECJ,DPOPJ,ppj,FALSE);
  *lik = (give_log) ? f : exp(f);
 }
 
