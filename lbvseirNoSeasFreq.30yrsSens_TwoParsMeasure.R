@@ -503,7 +503,7 @@ pomp(
 ) -> sir
 
 params <- c(
-  BETA=37,
+  BETA=18,
   RHO=0.3,
   CHI=0.0001,
   ETA=0.1,
@@ -601,7 +601,7 @@ pomp(
 ) -> sir
 
 params <- c(
-  BETA=0.15,
+  BETA=18,
   RHO=0.3, # * 5 is to ensure infection persists
   CHI=0.0001,
   ETA=0.01,# check data
@@ -761,7 +761,7 @@ pomp(
 plot(lbvdat)
 #########
 
-#pf<-pfilter(lbvdat,params=c(params),Np=1000,max.fail=1000,tol=1e-20)
+pf<-pfilter(lbvdat,params=c(params),Np=1000,max.fail=1000,tol=1e-20)
 #logLik(pf)
 #coef(pf)
 

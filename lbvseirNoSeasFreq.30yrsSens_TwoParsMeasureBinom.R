@@ -60,7 +60,7 @@ pomp(
 params <- c(
   BETA=18,
   RHO=0.3,
-  ETA=0.1,
+#  ETA=0.1,
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
  ERA.0=1000,INFA.0=5000, RECA.0=50000,
@@ -184,7 +184,7 @@ pomp(
 plot(lbvdat)
 #########
 
-pf<-pfilter(lbvdat,params=c(params),Np=1000,max.fail=1000,tol=1e-20)
+pf<-pfilter(lbvdat,params=c(params),Np=5000,max.fail=5000,tol=1e-20)
 logLik(pf)
 coef(pf)
 
@@ -196,8 +196,8 @@ RhoV = seq(from=0.001,to=1, by=0.0125) # range of rho
 #
 parametset<- expand.grid(BetaV,RhoV)
 dim(parametset)
-EtaV<-rep(0.1,length(parametset[,1]))
-paramsV<-cbind(parametset,EtaV)
+#EtaV<-rep(0.1,length(parametset[,1]))
+#paramsV<-cbind(parametset,EtaV)
 nonV = matrix(c(
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
@@ -211,30 +211,30 @@ dimnames(nonV)[[2]]=c("SUSJ.0","MDAJ.0","SUSJM.0","EIJ.0",
                             "EIA.0","ERA.0","INFA.0","RECA.0",
                       "SPA.0","SPJ.0") # naming non-varying columns
 
-parsV<-cbind(paramsV,nonV)
+parsV<-cbind(parametset,nonV)
 
 BETA = as.numeric(parsV[,1])
 RHO = as.numeric(parsV[,2])
-ETA = as.numeric(parsV[,3])
-SUSJ.0 = as.numeric(parsV[,4])
-MDAJ.0 = as.numeric(parsV[,5])
-SUSJM.0 = as.numeric(parsV[,6])
-EIJ.0 = as.numeric(parsV[,7])
-ERJ.0 = as.numeric(parsV[,8])
-INFJ.0 = as.numeric(parsV[,9])
-RECJ.0 = as.numeric(parsV[,10])
-SUSA.0 = as.numeric(parsV[,11])
-EIA.0 = as.numeric(parsV[,12])
-ERA.0 = as.numeric(parsV[,13])
-INFA.0 = as.numeric(parsV[,14])
-RECA.0 = as.numeric(parsV[,15])
-SPA.0 = as.numeric(parsV[,16])
-SPJ.0 = as.numeric(parsV[,17])
+#ETA = as.numeric(parsV[,3])
+SUSJ.0 = as.numeric(parsV[,3])
+MDAJ.0 = as.numeric(parsV[,4])
+SUSJM.0 = as.numeric(parsV[,5])
+EIJ.0 = as.numeric(parsV[,6])
+ERJ.0 = as.numeric(parsV[,7])
+INFJ.0 = as.numeric(parsV[,8])
+RECJ.0 = as.numeric(parsV[,9])
+SUSA.0 = as.numeric(parsV[,10])
+EIA.0 = as.numeric(parsV[,11])
+ERA.0 = as.numeric(parsV[,12])
+INFA.0 = as.numeric(parsV[,13])
+RECA.0 = as.numeric(parsV[,14])
+SPA.0 = as.numeric(parsV[,15])
+SPJ.0 = as.numeric(parsV[,16])
 
 params<-cbind(
   BETA,
   RHO,
-  ETA,
+  #ETA,
   SUSJ.0,
   MDAJ.0,
   SUSJM.0,
