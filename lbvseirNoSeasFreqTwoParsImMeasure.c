@@ -8,9 +8,9 @@
 // define parameters
 
 #define BETA        (p[parindex[0]]) // transmission rate
-#define RHO			(p[parindex[1]]) // prob infectious
+#define RHO		(p[parindex[1]]) // prob infectious
 #define CHI        (p[parindex[2]]) // immigration rate
-#define ETA			(p[parindex[3]]) // error in measurement models
+#define ETA		(p[parindex[3]]) // error in measurement models
 
 // define states
 

@@ -9,6 +9,7 @@
 
 #define BETA        (p[parindex[0]]) // transmission rate
 #define RHO        (p[parindex[1]]) // transmission rate
+#define CHI        (p[parindex[2]]) // immigration rate
 
 // define states
 
@@ -106,13 +107,13 @@ const double GAMMA=0.003773585;
   rate[2] = DELTA*(N/K);			// density dept mortality - Juvenile 
   rate[3] = GAMMA; // aging from SUSJM to adult SUS
   rate[4] = DELTA*(N/K); // density dept mortality - juvenile
-  rate[5] = RHO*BETA*(INFJ+INFA)/N;			// sus to exposed- infectious route
-  rate[6] = (1-RHO)*BETA*(INFJ+INFA)/N; 		// sus to exposed- recovered route
+  rate[5] = RHO*BETA*(INFJ+INFA)/N + CHI;			// sus to exposed- infectious route
+  rate[6] = (1-RHO)*BETA*(INFJ+INFA)/N + CHI; 		// sus to exposed- recovered route
   rate[7] = (KAPPA*(1/sqrt((1/S)*pi)*exp(-pow((cos(pi*OMEGA*t-PHI)),2)/(1/S))))*(SUSA+ERA);		// approx delta function birth into susceptible class
   rate[8] = DELTA*(N/K);			// density dept mortality - Juvenile 
   rate[9] = EPSILON;		// aging from juv to ad
-  rate[10] = RHO*BETA*(INFJ+INFA)/N;			// sus to exposed- infectious route
-  rate[11] = (1-RHO)*BETA*(INFJ+INFA)/N; 		// sus to exposed- recovered route
+  rate[10] = RHO*BETA*(INFJ+INFA)/N + CHI;			// sus to exposed- infectious route
+  rate[11] = (1-RHO)*BETA*(INFJ+INFA)/N + CHI; 		// sus to exposed- recovered route
   rate[12] = DELTA*(N/K);			// density dept mortality - Juvenile   
   rate[13] = SIGMA;		// incubation rate
   rate[14] = DELTA*(N/K);			// density dept mortality - Juvenile 
@@ -122,8 +123,8 @@ const double GAMMA=0.003773585;
   rate[18] = DELTA*(N/K);			// density dept mortality - Juvenile
   rate[19] = EPSILON;		// aging from juv to ad
   rate[20] = MU*(N/K);			// density dept mortality - Adult
-  rate[21] = RHO*BETA*(INFJ+INFA)/N;			// sus to exposed- infectious route
-  rate[22] = (1-RHO)*BETA*(INFJ+INFA)/N; 		// sus to exposed- recovered route
+  rate[21] = RHO*BETA*(INFJ+INFA)/N + CHI;			// sus to exposed- infectious route
+  rate[22] = (1-RHO)*BETA*(INFJ+INFA)/N + CHI; 		// sus to exposed- recovered route
   rate[23] = MU*(N/K);			// density dept mortality - Adult
   rate[24] = SIGMA;		// incubation rate
   rate[25] = MU*(N/K);			// density dept mortality - adult
