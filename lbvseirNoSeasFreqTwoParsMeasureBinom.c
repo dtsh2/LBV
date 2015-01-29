@@ -33,17 +33,17 @@
 #define DRECJ	(y[obsindex[1]]) // data juvenile sero pos
 #define DPOPA	(y[obsindex[2]]) // data adult sampled
 #define DPOPJ	(y[obsindex[3]]) // data juvenile sampled
-#define DSPA	(y[obsindex[4]]) // adult seroprevalence
-#define DSPJ	(y[obsindex[5]]) // juvenile seroprevalence
+// #define DSPA	(y[obsindex[4]]) // adult seroprevalence
+// #define DSPJ	(y[obsindex[5]]) // juvenile seroprevalence
 
-// binmoial measurement error density
+// binomial measurement error density
 
 void binomial_dmeasure (double *lik, double *y, double *x, double *p, int give_log,
 			  int *obsindex, int *stateindex, int *parindex, int *covindex,
 			  int ncovars, double *covars, double t)
 {
-  double ppa = fabs(DSPA);
-  double ppj = fabs(DSPJ);
+  double ppa = (SPA);
+  double ppj = (SPJ);
   double f = 0.0;
    f += dbinom(DRECA,DPOPA,ppa,TRUE); // we want this to be on the log scale
    f += dbinom(DRECJ,DPOPJ,ppj,TRUE);
@@ -57,8 +57,8 @@ void binomial_rmeasure (double *y, double *x, double *p,
 			  int *obsindex, int *stateindex, int *parindex, int *covindex,
 			  int ncovars, double *covars, double t)
 {
-  double ppa = fabs(DSPA);
-  double ppj = fabs(DSPJ); 
+  double ppa = (SPA);
+  double ppj = (SPJ); 
   DRECA = rbinom(DPOPA,ppa);
   DRECJ = rbinom(DPOPJ,ppj);
 }

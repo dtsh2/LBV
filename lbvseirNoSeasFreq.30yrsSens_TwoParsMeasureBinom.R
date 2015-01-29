@@ -58,8 +58,8 @@ pomp(
 ) -> sir
 
 params <- c(
-  BETA=18,
-  RHO=0.3,
+  BETA=7.5,
+  RHO=0.0635,
 #  ETA=0.1,
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
@@ -71,16 +71,19 @@ class(sir) # pomp object
 class(sim) # data frame - change states, obs and data.frame if want pomp obj
 #
 plot(sim$time,sim$SUSJ,type="l")
-#points(sim$time,sim$RECJ,col="green",type="l")
-#points(sim$time,sim$MDA,col="brown",type="l")
-#points(sim$time,sim$INFJ,col="red",type="l")
+points(sim$time,sim$RECJ,col="green",type="l")
+points(sim$time,sim$MDA,col="brown",type="l")
+points(sim$time,sim$INFJ,col="red",type="l")
 #
-#plot(sim$time,sim$SUSA,type="l")
-#points(sim$time,sim$RECA,col="green",type="l")
-#points(sim$time,sim$INFA,col="red",type="l")
+plot(sim$time,sim$RECA,col="green",type="l",ylim=c(0,max(sim$RECA)))
+points(sim$time,sim$SUSA,type="l")
+points(sim$time,sim$INFA,col="red",type="l")
 #
-#plot(sim$time,sim$SPA,type="l",col="green")
-#points(sim$time,sim$SPJ,type="l",col="red")
+plot(sim$time,sim$SPA,type="l",col="darkgreen",ylim=c(0,1))
+points(sim$time,sim$SPJ,type="l",col="darkblue")
+plot(sim$time,sim$INFA,type="l",col="orange")#,ylim=c(0,1))
+points(sim$time,sim$INFJ,type="l",col="red")
+
 #########################################################
 
 pomp(
@@ -119,18 +122,18 @@ pomp(
   }
 ) -> sir
 
-params <- c(
-  BETA=18,
-  RHO=0.3, # * 5 is to ensure infection persists
+#params <- c(
+#  BETA=5,
+#  RHO=0.126, # * 5 is to ensure infection persists
   #ETA=0.01,# check data
-  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-  ERA.0=1000,INFA.0=5000, RECA.0=50000,
-  SPA.0=0.4994506,SPJ.0=0.5882353) # this adds to the initial conditions given the state variables
+#  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
+#  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
+#  ERA.0=1000,INFA.0=5000, RECA.0=50000,
+#  SPA.0=0.4994506,SPJ.0=0.5882353) # this adds to the initial conditions given the state variables
 
-sim <- simulate(sir,params=params,seed=3493885L,nsim=1,states=F,obs=F,as.data.frame=T) # 
-class(sir) # pomp object
-class(sim) # data frame - even if I remove "as.data.frame" in the above code (sim)
+#sim <- simulate(sir,params=params,seed=3493885L,nsim=1,states=F,obs=F,as.data.frame=T) # 
+#class(sir) # pomp object
+#class(sim) # data frame - even if I remove "as.data.frame" in the above code (sim)
 
 ## try with actual data:
 
@@ -150,8 +153,8 @@ lbv.new<-cbind(times,DSPJ,DSPA,DRECJ,DRECA,DPOPJ,DPOPA)
 pomp(
   data = data.frame(
     time=lbv.new[,1],  # time for simulations to run
-    DSPJ = lbv.new[,2],
-    DSPA = lbv.new[,3],
+  #  DSPJ = lbv.new[,2],
+  #  DSPA = lbv.new[,3],
     DRECJ = lbv.new[,4],
     DRECA = lbv.new[,5],
     DPOPJ = lbv.new[,6],
@@ -170,7 +173,8 @@ pomp(
   dmeasure="binomial_dmeasure",
   ## the order of the state variables assumed in the native routines:
   statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-  obsnames=c("DSPJ","DSPA","DRECJ","DRECA","DPOPJ","DPOPA"),
+  obsnames=c(#"DSPJ","DSPA",
+             "DRECJ","DRECA","DPOPJ","DPOPA"),
   ## the order of the parameters assumed in the native routines:
   paramnames=c("BETA","RHO",#"ETA",
                "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
@@ -184,15 +188,15 @@ pomp(
 plot(lbvdat)
 #########
 
-pf<-pfilter(lbvdat,params=c(params),Np=5000,max.fail=5000,tol=1e-20)
+pf<-pfilter(lbvdat,params=c(params),Np=100,max.fail=100,tol=1e-20)
 logLik(pf)
 coef(pf)
 
-BetaV = seq(from=0.001,to=40,by=0.5)  # range of beta
-RhoV = seq(from=0.001,to=1, by=0.0125) # range of rho
+BetaV = seq(from=0.001,to=40,by=2.5)  # range of beta
+RhoV = seq(from=0.001,to=1, by=0.0625) # range of rho
 #
-# BetaV = seq(from=1,to=40,by=4)  # range of beta
-# RhoV = seq(from=0.01,to=1, by=0.1) # range of rho
+BetaV = seq(from=0.001,to=20,by=1.25)  # range of beta
+RhoV = seq(from=0.001,to=0.5, by=0.03125) # range of rho
 #
 parametset<- expand.grid(BetaV,RhoV)
 dim(parametset)
@@ -254,7 +258,7 @@ params<-cbind(
 results<-array(NA,dim=c(length(parametset[,1]),3))
 ## nb check # particles - reduced for training
 for (j in 1:length(params[,1])){
-  results[j,1]<-logLik(pfilter(lbvdat,params=c(params[j,]),Np=100,max.fail=1000,tol=1e-20))
+  results[j,1]<-logLik(pfilter(lbvdat,params=c(params[j,]),Np=100,max.fail=100,tol=1e-20))
   #pf<-pfilter(lbvdat,params=c(params[j,]),Np=6000,max.fail=1000,tol=1e-20)
 results[j,2:3]<-#c(logLik(pf))}
 #
@@ -276,8 +280,9 @@ zzg <- interp(x=results[,2], #
               y=results[,3], # 
               z=results[,1],
               duplicate=T)#,grid.len=c(50,50))#,span=0.1)
-image(zzg,ann=T,xlim=c(0,30),ylim=c(0,0.5), ylab=rholab,xlab=betalab)
-contour(zzg,add=T,labcex=1,drawlabels=T,nlevels=50)
+## narrow figure
+image(zzg,ann=T,xlim=c(0,20),ylim=c(0,0.5), ylab=rholab,xlab=betalab)
+contour(zzg,add=T,labcex=1,drawlabels=T,nlevels=10)
 #contour(zzg,add=F,labcex=1,drawlabels=T,nlevels=100)
 
 par(omi=c(1,1,0.5,1))
@@ -287,19 +292,17 @@ surface(zzg,#col ="#FFFFFF",
         ylab=rholab,xlab=betalab,
         #zlim=c(0,10),
         labcex=1)
-contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=50)
+# contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=10)
 
 #plot(results[,1])
-min(results[,1])
-results[results[,1]==min(results[,1]),]
-minLL<-as.data.frame(t(results[results[,1]==min(results[,1]),]))
-names(minLL)<-c("negll","Beta","Rho")
-points(x=minLL$Beta,y=minLL$Rho,pch=16,col="pink")
-points(x=zzg[[1]][33],y=zzg[[2]][14],pch=16,col="yellow")
+max(results[,1])
+results[results[,1]==max(results[,1]),]
+maxLL<-as.data.frame(t(results[results[,1]==max(results[,1]),]))
+names(maxLL)<-c("negll","Beta","Rho")
+points(x=maxLL$Beta,y=maxLL$Rho,pch=16,col="white")
+#points(x=zzg[[1]][33],y=zzg[[2]][14],pch=16,col="yellow")
 
-which(zzg[[3]] == min(zzg[[3]]))
-zzg[[1]][593]
-zzg[[2]][593]
+which(zzg[[3]] == max(zzg[[3]]))
 
 resdf<-as.data.frame(results)#,value=cut(results[,1],breaks=seq(min(results[,1]),max(results[,1]),25)))
 names(resdf)<-c("nll","beta","rho")#,"NegLL")
@@ -308,7 +311,7 @@ p <- ggplot(resdf) +
   geom_tile(aes(beta,rho,fill=nll)) + 
   geom_contour(aes(x=beta,y=rho,z=nll), colour="white",bins=25) 
 p
-p = p + geom_point(aes(y=0.33, x=32.4),colour="red")
+# p = p + geom_point(aes(y=0.33, x=32.4),colour="red")
 p
 ## to here..
 write.csv(resdf,file="pfilterres.csv")
