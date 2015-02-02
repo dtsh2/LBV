@@ -84,22 +84,6 @@ void sir_euler_simulator (double *x, const double *p,
   // define constant values
 
 const double pi = 3.14159265359;
-const double EPSILON=0.002739726;
-const double S=14.35;
-const double OMEGA=0.002739726;
-const double PHI=0.0;
-const double GAMMA=0.003773585;
-  
-  alpha= 0.02,			# dis induced mortality
-  rho= 0.01,				# probability that exposure/infection will lead to infection & infectiousness (and dead)
-  sigma= 0.002083333,			# incubation period 
-#  epsilon= 1/10,				# rate of aging for those juveniles, should be ~ annual
-  tau= 0.004166667, 	      # rate of seroconversion
-  psi= 10,			######### this will need to be 1/psi for analysis 
-  #k=,        			# nb this is birth rate which halved
-  s=14.83/10)#,   # very synchronous
-#  phi=0.01)
-
 
 // in C --- pow(a,b) to do a^b 
 

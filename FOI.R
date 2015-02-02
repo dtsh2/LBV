@@ -3,10 +3,15 @@
 ######################################################
 	rm(list=ls())
 ## get data
-setwd("~/Cambridge/CSU 2013/LBV model/lbvmodels/new_models_sept/deterministic")
+
+setwd("~/GitHub/LBV") 
+
+# setwd("~/Cambridge/CSU 2013/LBV model/lbvmodels/new_models_sept/deterministic")
 ## data
 
 age<-read.table("Ageofinfection.txt",header=T)
+
+#setwd("~/GitHub/LBV") 
 
 head(age)
 class(age)
@@ -20,6 +25,13 @@ class(data)
 colnames(data)<-c("Age","sumd","Pos","Tot")
 head(data)
 
+tiff("dist_titres_aged_bats.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+hist(Log.Titre.,breaks=100,#xlim=c(0.5,4),
+     main="",xlab="Log(Reciprocal titre)",col="grey")#,add=T)
+par(fig = c(0.6, 1, 0.4, 1), #mar=c(0,0,0,0),
+    new=TRUE)
+hist(RecTitre,breaks=1000,main="",xlab="Reciprocal titre")
+dev.off()
 ## fit Muench's model, p90 Hens et al
 model1<- glm(cbind(Tot-Pos,Pos)~-1+Age,data=data,family=binomial(link="log"))
 summary(model1)
@@ -57,19 +69,21 @@ summary(model4)
 #        +(1/coef(model5)[2])*((coef(model5)[1]/coef(model5)[2])-coef(model5)[3])*(exp(-coef(model5)[2]*data$Age)-1)-coef(model5)[3]*data$Age)
 #points(data$Age,foiFar,col="orange",lty=2,type="l")
 #
-AIC(model1,model2,model3,model4)
+AIC(model2,model3,model4)
 
 ## 
+tiff("foi.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 symbols(data$Age,(data$Pos/data$Tot),(data$Tot),
         bg="#0000FF0A",
         #fg="white",bg="red",
         xlim=c(-1,15),ylim=c(-0.2,1.2),
         ylab="Seroprevalence",xlab="Age")
-text(data$Age, (data$Pos/data$Tot), data$Tot, cex=1)
+#text(data$Age, (data$Pos/data$Tot), data$Tot, cex=1)
+text(data$Age, (data$Pos/data$Tot), ".", cex=1)
 #for(i in 1:13) points(i,1.5,cex=i)
 foi<-exp(coef(model2))
-abline(h=0.126,lty=2)
-legend(8,0,"constant force of infection",lty=2, cex=1,bty="n")
+points(data$Age,rep(foi,14),lty=2,type="l")
+#legend(8,0,"constant force of infection",lty=2, cex=1,bty="n")
 
 ## to plot others
 ## but don't, less clear figure
@@ -83,3 +97,12 @@ points(data$Age,foi3,col="blue",lty=2,type="l")
 
 abline(h=0,col="grey")
 
+legend("topleft",c("Constant","Quadratic","Polynomial"),lty=2,col=c("black","red","blue"),bty="n")
+
+symbols(-0.5,0.9,0.2,inches=F,
+        bg="#0000FF0A",
+        #fg="white",bg="red",
+add=T)
+text(1,0.9, "size = 1", cex=1)
+
+dev.off()

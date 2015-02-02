@@ -21,10 +21,8 @@ setwd("~/GitHub/LBV") # revise as necessary
 library(pomp)
 
 #Compiling C code and loading the dll
-# dyn.unload("lbvseirNoSeasFreqTwoParsMeasure.dll")
-#dyn.unload("lbvseirNoSeasFreqTwoParsImMeasure.dll")
 
- system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasureBinom.c")
+# system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasureBinom.c")
 
 dyn.load("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
 # dyn.unload("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
@@ -58,84 +56,97 @@ pomp(
 ) -> sir
 
 params <- c(
-  BETA=7.5,
+  BETA=6.25,
   RHO=0.0635,
-#  ETA=0.1,
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
  ERA.0=1000,INFA.0=5000, RECA.0=50000,
   SPA.0=0.4994506,SPJ.0=0.5882353)
 #
-sim <- simulate(sir,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # 
+sim <- simulate(sir,params=c(params),seed=3593885L,
+                nsim=1,states=T,obs=F,as.data.frame=T) # 
 class(sir) # pomp object
 class(sim) # data frame - change states, obs and data.frame if want pomp obj
 #
-plot(sim$time,sim$SUSJ,type="l")
+tiff("juv_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+plot(sim$time,sim$SUSJ,type="l",xlab="days",ylab="numbers")
 points(sim$time,sim$RECJ,col="green",type="l")
 points(sim$time,sim$MDA,col="brown",type="l")
 points(sim$time,sim$INFJ,col="red",type="l")
+legend("topleft",c("Susceptible","Recovered","Maternal-antibody","Infected"),
+       col=c("black","green","brown","red"),lty=1,bty="n")
+dev.off()
+
+tiff("juv_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+plot(sim$time[8396:9126],sim$SUSJ[8396:9126],type="l",
+     ylim=c(0,max(c(sim$SUSJ,sim$RECJ,sim$MDA))),xlab="days",ylab="numbers")
+points(sim$time[8396:9126],sim$RECJ[8396:9126],col="green",type="l")
+points(sim$time[8396:9126],sim$MDA[8396:9126],col="brown",type="l")
+points(sim$time[8396:9126],sim$INFJ[8396:9126],col="red",type="l")
+legend("topleft",c("Susceptible","Recovered","Maternal-antibody","Infected"),
+       col=c("black","green","brown","red"),lty=1,bty="n")
+dev.off()
 #
-plot(sim$time,sim$RECA,col="green",type="l",ylim=c(0,max(sim$RECA)))
+
+tiff("adult_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+plot(sim$time,sim$RECA,col="green",type="l",ylim=c(0,max(c(sim$RECA,sim$SUSA)))
+     ,xlab="days",ylab="numbers")
 points(sim$time,sim$SUSA,type="l")
 points(sim$time,sim$INFA,col="red",type="l")
-#
-plot(sim$time,sim$SPA,type="l",col="darkgreen",ylim=c(0,1))
-points(sim$time,sim$SPJ,type="l",col="darkblue")
-plot(sim$time,sim$INFA,type="l",col="orange")#,ylim=c(0,1))
-points(sim$time,sim$INFJ,type="l",col="red")
+legend("topleft",c("Susceptible","Recovered","Infected"),
+       col=c("black","green","red"),lty=1,bty="n")
+dev.off()
 
+tiff("adult_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+plot(sim$time[8396:9126],sim$RECA[8396:9126],col="green",type="l",ylim=c(0,max(c(sim$RECA,sim$SUSA)))
+     ,xlab="days",ylab="numbers")
+points(sim$time[8396:9126],sim$SUSA[8396:9126],type="l")
+points(sim$time[8396:9126],sim$INFA[8396:9126],col="red",type="l")
+legend("left",c("Susceptible","Recovered","Infected"),
+       col=c("black","green","red"),lty=1,bty="n")
+dev.off()
+#
+tiff("sp_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+plot(sim$time,sim$SPA,type="l",col="darkgreen",ylim=c(0,1)
+     ,xlab="days",ylab="seroprevalence (%)")
+points(sim$time,sim$SPJ,type="l",col="darkblue")
+legend("topright",c("Adult","Juvenile"),
+       col=c("darkgreen","darkblue"),lty=1,bty="n")
+dev.off()
+
+tiff("sp_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+plot(sim$time[8396:9126],sim$SPA[8396:9126],type="l",col="darkgreen",ylim=c(0,1)
+     ,xlab="days",ylab="seroprevalence (%)")
+points(sim$time[8396:9126],sim$SPJ[8396:9126],type="l",col="darkblue")
+legend("topright",c("Adult","Juvenile"),
+       col=c("darkgreen","darkblue"),lty=1,bty="n")
+dev.off()
+#
+tiff("inf_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+plot(sim$time,sim$INFA,type="l",col="orange",ylim=c(0,500)
+     ,xlab="days",ylab="numbers")
+points(sim$time,sim$INFJ,type="l",col="red")
+legend("topright",c("adults","juveniles"),
+       col=c("orange","red"),lty=1,bty="n")
+dev.off()
+
+tiff("inf_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+plot(sim$time[8396:9126],sim$INFA[8396:9126],type="l",col="orange",ylim=c(0,200)
+     ,xlab="days",ylab="numbers")
+points(sim$time[8396:9126],sim$INFJ[8396:9126],type="l",col="red")
+legend("topright",c("adults","juveniles"),
+       col=c("orange","red"),lty=1,bty="n")
+dev.off()
 #########################################################
 
-pomp(
-  data = data.frame(
-    time=seq(from=0,to=365*25,by=1),  # time for simulations to run
-    DSPA = NA,
-    DSPJ = NA,
-    DRECA = NA,
-    DRECJ = NA,
-    DPOPA = NA,
-    DPOPJ = NA
-    #  X = NA # dummy variables
-  ),
-  times="time",
-  t0=0,
-  ## native routine for the process simulator:
-  rprocess=euler.sim(
-    step.fun="sir_euler_simulator",
-    delta.t=1,
-    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
-    ## name of the shared-object library containing the PACKAGE="pomp",
-  ),
-  rmeasure="binomial_rmeasure",
-  dmeasure="binomial_dmeasure",
-  ## the order of the state variables assumed in the native routines:
-  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-  obsnames=c("DSPA","DSPJ","DRECA","DRECJ","DPOPA","DPOPJ"),
-
-  ## the order of the parameters assumed in the native routines:
-  paramnames=c("BETA","RHO",#"ETA",
-               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-  initializer=function(params,t0,statenames,...){
-    x0<-params[paste(statenames,".0",sep="")]
-    names(x0)<-statenames
-    return(x0)
-  }
-) -> sir
-
-#params <- c(
-#  BETA=5,
-#  RHO=0.126, # * 5 is to ensure infection persists
-  #ETA=0.01,# check data
-#  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-#  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-#  ERA.0=1000,INFA.0=5000, RECA.0=50000,
-#  SPA.0=0.4994506,SPJ.0=0.5882353) # this adds to the initial conditions given the state variables
-
-#sim <- simulate(sir,params=params,seed=3493885L,nsim=1,states=F,obs=F,as.data.frame=T) # 
-#class(sir) # pomp object
-#class(sim) # data frame - even if I remove "as.data.frame" in the above code (sim)
-
-## try with actual data:
 
 lbvd<-read.csv("lbv_data_plustime.csv")
 DSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
@@ -150,6 +161,112 @@ times<-lbvd$cumulative_time
 #
 lbv.new<-cbind(times,DSPJ,DSPA,DRECJ,DRECA,DPOPJ,DPOPA)
 
+# for all parameter sets....
+res1<-array(NA,dim=c(100,12,2))
+for (j in 1:100){
+## change # sims
+  sim <- simulate(sir,params=c(params),#seed=3493885L,
+                  nsim=1,states=T,obs=F,as.data.frame=T) # 
+  outres <- sim[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455),] # select last #s
+  N = array(NA,c(12,2)) # same dimensions as No. runs * outputs I want
+  for (i in 1:12){  
+  N[i,1]<-outres[i,13]
+  N[i,2]<-outres[i,14]
+  }
+  res1[j,,]<-N
+}
+res2<-array(NA,dim=c(12,2))
+res2[,1]<-colMeans(res1[,,1])
+res2[,2]<-colMeans(res1[,,2])
+plot(res2[,2])
+#
+
+cr<-cor(c(res2[,1],res2[,2]),c(DSPA,DSPJ))
+cr
+crt<-cor.test(c(res2[,1],res2[,2]),c(DSPA,DSPJ))
+crt
+lmp<-lm(c(DSPA,DSPJ)~(c(res2[,1],res2[,2])))
+
+tiff("cor_pred_vs_data.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+plot(c(res2[,1],res2[,2]),c(DSPA,DSPJ),ylim=c(0,max(c(DSPA,DSPJ))),xlim=c(0,max(c(res2[,1],res2[,2]))),col=c(rep("red",12),rep("blue",12)),
+     ylab="Mean seroprevalence (%)",xlab="Predicted seroprevalence (%)",pch=19)
+legend("topleft",c("juvenile","adult"),col=c("blue","red"),pch=19,bty="n")
+abline(lmp)
+corval<-format(round(cr[1],3))
+corlab<-bquote(plain(R==.(corval)))
+text(c(0.15),(0.05),corlab)
+dev.off()
+
+#sim <- simulate(sir,params=c(params),seed=3593885L,
+#                nsim=1,states=T,obs=F,as.data.frame=T) # 
+## correlation
+# plot(c(sim$SPJ[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)],
+#       sim$SPA[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)]),
+#     c(DSPJ,DSPA),ylim=c(0,0.6),xlim=c(0,0.7),col=c(rep("red",12),rep("blue",12)),
+#     ylab="Mean seroprevalence (%)",xlab="Predicted seroprevalence (%)",pch=19)
+#legend("topleft",c("juvenile","adult"),col=c("red","blue"),pch=19,bty="n")
+
+##
+#cr<-cor(c(sim$SPJ[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)],
+#       sim$SPA[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)]),
+#     c(DSPJ,DSPA))
+#
+#cor.test(c(sim$SPJ[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)],
+#      sim$SPA[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)]),
+#    c(DSPJ,DSPA))
+#lmp<-lm(c(DSPJ,DSPA)~(c(sim$SPJ[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)],
+#      sim$SPA[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)])))
+#abline(lmp)
+#text(0.45,0.45,round(cr[1],3))
+
+##
+## binomial CI for SP
+## each sample get CIs
+
+lbv.new<-as.data.frame(lbv.new)
+for(ii in 1:12)
+{
+  lbv.new$SpA.ci.l[ii] <- binom.test(lbv.new$DRECA[ii], lbv.new$DPOPA[ii])$conf.int[1]
+  lbv.new$SpA.ci.u[ii] <- binom.test(lbv.new$DRECA[ii], lbv.new$DPOPA[ii])$conf.int[2]    
+}
+
+for(ii in 1:12)
+{
+  lbv.new$SpJ.ci.l[ii] <- binom.test(lbv.new$DRECJ[ii], lbv.new$DPOPJ[ii])$conf.int[1]
+  lbv.new$SpJ.ci.u[ii] <- binom.test(lbv.new$DRECJ[ii], lbv.new$DPOPJ[ii])$conf.int[2]    
+}
+
+## Plot data vs the true underlying epidemic.
+tiff("sp_data.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+plot(lbv.new$times, lbv.new$DSPA, type="l", col="red", bty = "n",ylim=c(0,1),
+     #ylim = c(0, max(lbv.new$SpA.ci.u)), 
+     xlab = "days", ylab = "seroprevalence")
+## Add data
+points(lbv.new$times, lbv.new$DSPA, col = "red", pch = 19)
+## Add CIs
+arrows(lbv.new$times, lbv.new$SpA.ci.l, lbv.new$times, lbv.new$SpA.ci.u, length = .01,
+       angle = 90, code = 3,col="red")
+lines(lbv.new$times, lbv.new$DSPJ, type="l", col="blue")
+## Add data
+points(lbv.new$times, lbv.new$DSPJ, col = "blue", pch = 19)
+## Add CIs
+arrows(lbv.new$times, lbv.new$SpJ.ci.l, lbv.new$times, lbv.new$SpJ.ci.u, length = .01,
+       angle = 90, code = 3,col="blue")
+## Add legends
+legend("topright", c("Adult", "Juvenile"),
+       col=c("red","blue"),lty=1,bty="n")
+dev.off()
+
+#points(lbv.new$times,
+#     sim$SPJ[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)], 
+#     pch=19)
+#points(lbv.new$times,
+#       sim$SPA[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)], 
+#       pch=19)
+
+################
+##
 pomp(
   data = data.frame(
     time=lbv.new[,1],  # time for simulations to run
@@ -195,8 +312,11 @@ coef(pf)
 BetaV = seq(from=0.001,to=40,by=2.5)  # range of beta
 RhoV = seq(from=0.001,to=1, by=0.0625) # range of rho
 #
-BetaV = seq(from=0.001,to=20,by=1.25)  # range of beta
+BetaV = seq(from=0.001,to=10,by=1.25)  # range of beta
 RhoV = seq(from=0.001,to=0.5, by=0.03125) # range of rho
+#
+BetaV = seq(from=0.01,to=10,by=0.125)  # range of beta
+RhoV = seq(from=0.001,to=0.5, by=0.0078125) # range of rho
 #
 parametset<- expand.grid(BetaV,RhoV)
 dim(parametset)
@@ -266,12 +386,18 @@ c(params[j,1],params[j,2])
 }
 
 ##
+#
+#
+write.csv(results,file="mll_surface_fine.csv")
+
+##
 
 library(akima)
 library(lattice)
 library(tgp)
 library(rgl)
 library(fields)
+
 
 rholab<-expression(symbol(rho))
 betalab<-expression(symbol(beta))
@@ -281,533 +407,107 @@ zzg <- interp(x=results[,2], #
               z=results[,1],
               duplicate=T)#,grid.len=c(50,50))#,span=0.1)
 ## narrow figure
-image(zzg,ann=T,xlim=c(0,20),ylim=c(0,0.5), ylab=rholab,xlab=betalab)
-contour(zzg,add=T,labcex=1,drawlabels=T,nlevels=10)
-#contour(zzg,add=F,labcex=1,drawlabels=T,nlevels=100)
-
-par(omi=c(1,1,0.5,1))
-par(mai=c(0.8,0.8,0.8,0.8))
-
-surface(zzg,#col ="#FFFFFF",
-        ylab=rholab,xlab=betalab,
-        #zlim=c(0,10),
-        labcex=1)
-# contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=10)
 
 #plot(results[,1])
 max(results[,1])
 results[results[,1]==max(results[,1]),]
 maxLL<-as.data.frame(t(results[results[,1]==max(results[,1]),]))
 names(maxLL)<-c("negll","Beta","Rho")
-points(x=maxLL$Beta,y=maxLL$Rho,pch=16,col="white")
-#points(x=zzg[[1]][33],y=zzg[[2]][14],pch=16,col="yellow")
 
-which(zzg[[3]] == max(zzg[[3]]))
+tiff("ll_beta_rho.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
-resdf<-as.data.frame(results)#,value=cut(results[,1],breaks=seq(min(results[,1]),max(results[,1]),25)))
-names(resdf)<-c("nll","beta","rho")#,"NegLL")
-library(ggplot2)
-p <- ggplot(resdf) + 
-  geom_tile(aes(beta,rho,fill=nll)) + 
-  geom_contour(aes(x=beta,y=rho,z=nll), colour="white",bins=25) 
-p
-# p = p + geom_point(aes(y=0.33, x=32.4),colour="red")
-p
-## to here..
-write.csv(resdf,file="pfilterres.csv")
-test<-read.csv("pfilterres.csv",header=T)
-#######################################################
-##
-## compare with immigration
+image(zzg,ann=T,xlim=c(0,max(results[,2])),ylim=c(0,max(results[,3])),
+      ylab=rholab,xlab=betalab)
+#contour(zzg,add=T,labcex=1,drawlabels=T,nlevels=10)
+#contour(zzg,add=F,labcex=1,drawlabels=T,nlevels=100)
+points(x=maxLL$Beta,y=maxLL$Rho,pch=16,col="black")
+points(x=maxLL[2,],y=maxLL[3,],pch=16,col="black")
+dev.off()
 
-#Compiling C code and loading the dll
-
-dyn.unload("lbvseirNoSeasFreqTwoParsMeasure.dll")
-
-# system("R CMD SHLIB lbvseirNoSeasFreqTwoParsImMeasure.c")
-
-dyn.load("lbvseirNoSeasFreqTwoParsImMeasure.dll")
-
-pomp(
-  data = data.frame(
-    time=seq(from=0,to=365*25,by=1),  # time for simulations to run
-    X = NA # dummy variables
-  ),
-  times="time",
-  t0=0,
-  ## native routine for the process simulator:
-  rprocess=euler.sim(
-    step.fun="sir_euler_simulator",
-    delta.t=1,
-    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
-    ## name of the shared-object library containing the PACKAGE="pomp",
-  ),
-  
-  ## the order of the state variables assumed in the native routines:
-  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-  ## the order of the parameters assumed in the native routines:
-  paramnames=c("BETA",
-               "RHO",
-               "CHI",
-               "ETA",
-               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-  initializer=function(params,t0,statenames,...){
-    x0<-params[paste(statenames,".0",sep="")]
-    names(x0)<-statenames
-    return(x0)
-  }
-) -> sir
-
-params <- c(
-  BETA=37,
-  RHO=0.3,
-  CHI=0.0001,
-  ETA=0.1,
-  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-  ERA.0=1000,INFA.0=5000, RECA.0=50000,
-  SPA.0=0.4994506,SPJ.0=0.5882353)
-#
-sim <- simulate(sir,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # 
-class(sir) # pomp object
-class(sim) # data frame - change states, obs and data.frame if want pomp obj
-#
-plot(sim$time,sim$SUSJ,type="l")
-#points(sim$time,sim$RECJ,col="green",type="l")
-#points(sim$time,sim$MDA,col="brown",type="l")
-#points(sim$time,sim$INFJ,col="red",type="l")
-#
-#plot(sim$time,sim$SUSA,type="l")
-#points(sim$time,sim$RECA,col="green",type="l")
-#points(sim$time,sim$INFA,col="red",type="l")
-#
-#plot(sim$time,sim$SPA,type="l",col="green")
-#points(sim$time,sim$SPJ,type="l",col="red")
-#########################################################
-## code dmeasure
-# double check
-# pomp(
-#  data = data.frame(
-#    time=sim$time,  # time for simulations to run
-#    DatSPA = sim$SPA,
-#    DatSPJ = sim$SPJ# dummy variables
-#  ),
-#  times="time",
-#  t0=0,
-#  ## native routine for the process simulator:
-#  rprocess=euler.sim(
-#    step.fun="sir_euler_simulator",
-#    delta.t=1,
-#    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
-#    ## name of the shared-object library containing the PACKAGE="pomp",
-#  ),
-#  rmeasure="lbv_normal_rmeasure",
-#  dmeasure="lbv_normal_dmeasure",
-#  ## the order of the state variables assumed in the native routines:
-#  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-#  ## the order of the parameters assumed in the native routines:
-#  paramnames=c("BETA",#"MU","DELTA","ALPHA",
-#               "RHO",#"SIGMA","K","EPSILON","TAU","PSI","KAPPA","S","OMEGA","PHI","GAMMA",
-#               "ETA",
-#               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-#  initializer=function(params,t0,statenames,...){
-#    x0<-params[paste(statenames,".0",sep="")]
-#    names(x0)<-statenames
-#    return(x0)
-#  }
-#) -> lbv
-#
-#lbv.sim <- simulate(lbv,params=c(params),seed=3493885L,nsim=1,states=T,obs=F,as.data.frame=T) # double check seed in this
-#class(lbv.sim)
-#
-#plot(lbv.sim$time,lbv.sim$SPA,type="l",col="green")
-#points(lbv.sim$time,lbv.sim$SPJ,type="l",col="red")
-#
-#########
-
-pomp(
-  data = data.frame(
-    time=seq(from=0,to=365*25,by=1),  # time for simulations to run
-    DatSPA = NA,
-    DatSPJ = NA
-    #  X = NA # dummy variables
-  ),
-  times="time",
-  t0=0,
-  ## native routine for the process simulator:
-  rprocess=euler.sim(
-    step.fun="sir_euler_simulator",
-    delta.t=1,
-    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
-    ## name of the shared-object library containing the PACKAGE="pomp",
-  ),
-  rmeasure="lbv_normal_rmeasure",
-  dmeasure="lbv_normal_dmeasure",
-  ## the order of the state variables assumed in the native routines:
-  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-  obsnames=c("DatSPA","DatSPJ"),
-  ## the order of the parameters assumed in the native routines:
-  paramnames=c("BETA","RHO","CHI","ETA",
-               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-  initializer=function(params,t0,statenames,...){
-    x0<-params[paste(statenames,".0",sep="")]
-    names(x0)<-statenames
-    return(x0)
-  }
-) -> sir
-
-params <- c(
-  BETA=0.15,
-  RHO=0.3, # * 5 is to ensure infection persists
-  CHI=0.0001,
-  ETA=0.01,# check data
-  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-  ERA.0=1000,INFA.0=5000, RECA.0=50000,
-  SPA.0=0.4994506,SPJ.0=0.5882353) # this adds to the initial conditions given the state variables
-
-sim <- simulate(sir,params=params,seed=3493885L,nsim=1,states=F,obs=F)#,as.data.frame=T) # 
-class(sir) # pomp object
-class(sim) # data frame - even if I remove "as.data.frame" in the above code (sim)
-
-#########################################################
-# to try another way round the issue of a data frame being created 
-# use the simulated model results above as the data directly
-pomp(
-  sim,
-  rmeasure="lbv_normal_rmeasure",
-  dmeasure="lbv_normal_dmeasure"#,
-) -> lbv
-
-class(lbv)
-plot(lbv)
-#########
-# if can save lbv as a pomp object (rather than a data.frame...
-# params to use and estimate
-
-##  pf<-pfilter(lbv,params=c(params),Np=1000)
-
-#####
-#
-#lbvd<-read.csv("test_data.csv")
-#
-#
-#DatSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
-#DatSPA<-lbvd$DRECA/(lbvd$DRECA+lbvd$DSUSA)
-#times<-lbvd$cumulative_time
-#
-#lbv.new<-cbind(times,DatSPJ,DatSPA)
-#lbv.sp<-cbind(lbv.new[,c(1,6,7)])
-#lbv.sp
-#
-#pomp(
-#  data = data.frame(
-#    time=lbv.new[,1],  # time for simulations to run
-#  SUSJ = NA,
-#  MDAJ = NA,
-#  SUSJM = NA,
-#  EIJ = NA,
-#  ERJ = NA,
-#  INFJ  = NA,
-#  RECJ  = NA,
-#  SUSA  = NA,
-#  EIA = NA,
-#  ERA = NA,
-#  INFA  = NA,
-#  RECA = NA,
-#  SPA = NA,
-#  SPJ = NA,
-#    DatSPJ = lbv.new[,2],
-#    DatSPA = lbv.new[,3]
-#  X = NA # dummy variables
-#  ),
-#  times='time',
-#  t0=0,
-## native routine for the process simulator:
-#  rprocess=euler.sim(
-#    step.fun="sir_euler_simulator",
-#    delta.t=1,
-#PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
-## name of the shared-object library containing the PACKAGE="pomp",
-#  ),
-#  rmeasure="lbv_normal_rmeasure",
-#  dmeasure="lbv_normal_dmeasure",
-#  ## the order of the state variables assumed in the native routines:
-#  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-#  obsnames=c("DatSPJ","DatSPA"),
-## the order of the parameters assumed in the native routines:
-#  paramnames=c("BETA","RHO","ETA",
-#               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-#  initializer=function(params,t0,statenames,...){
-#    x0<-params[paste(statenames,".0",sep="")]
-#    names(x0)<-statenames
-#    return(x0)
-#  }
-#) -> lbvdat
-
-#plot(lbvdat)
-#########
-# if can save lbv as a pomp object (rather than a data.frame...
-# params to use and estimate
-
-#pf<-pfilter(lbvdat,params=c(params),Np=2500,max.fail=1000,tol=1e-20)
-
-#pf<-pfilter(lbv,params=c(params),Np=1000)
-## try with actual data:
-## try nlf
-#out <- nlf(
-#  lbvdat,
-#  start=c(  BETA=18,
-#            RHO=0.017,
-#            ETA=1,# check data
-#            SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-#            RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-#            ERA.0=1000,INFA.0=5000, RECA.0=50000,
-#            SPA.0=0.4994506,SPJ.0=0.5882353),
-#  partrans=TRUE,
-#  est=c("BETA","RHO"),
-#  lags=c(1,2)
-#)
-##### this does not crash R
-#
-#pf<-pfilter(lbv,params=c(params),Np=1000)
-## try with actual data:
-
-lbvd<-read.csv("lbv_data_plustime.csv")
-#
-#
-DatSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
-DatSPA<-lbvd$DRECA/(lbvd$DRECA+lbvd$DSUSA)
-times<-lbvd$cumulative_time
-#
-lbv.new<-cbind(times,DatSPJ,DatSPA)
-
-pomp(
-  data = data.frame(
-    time=lbv.new[,1],  # time for simulations to run
-    
-    DatSPJ = lbv.new[,2],
-    DatSPA = lbv.new[,3]
-    
-  ),
-  times='time',
-  t0=0,
-  ## native routine for the process simulator:
-  rprocess=euler.sim(
-    step.fun="sir_euler_simulator",
-    delta.t=1,
-    #PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file 
-    ## name of the shared-object library containing the PACKAGE="pomp",
-  ),
-  rmeasure="lbv_normal_rmeasure",
-  dmeasure="lbv_normal_dmeasure",
-  ## the order of the state variables assumed in the native routines:
-  statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-  obsnames=c("DatSPJ","DatSPA"),
-  ## the order of the parameters assumed in the native routines:
-  paramnames=c("BETA","RHO","CHI","ETA",
-               "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-  initializer=function(params,t0,statenames,...){
-    x0<-params[paste(statenames,".0",sep="")]
-    names(x0)<-statenames
-    return(x0)
-  }
-) -> lbvdat
-
-plot(lbvdat)
-#########
-
-#pf<-pfilter(lbvdat,params=c(params),Np=1000,max.fail=1000,tol=1e-20)
-#logLik(pf)
-#coef(pf)
-
-## use larger range - just for demo/code for now (11/11/1)
-BetaV = seq(from=0.01,to=40,by=0.5)  # range of beta
-RhoV = seq(from=0.001,to=1, by=0.25) # range of rho
-ChiV = seq(from=0.0000001,to=0.001, by=0.000025) # range of chi
-#
-#BetaV = seq(from=1,to=40,by=10)  # range of beta
-#RhoV = seq(from=0.01,to=1, by=0.25) # range of rho
-#ChiV = seq(from=0.000001,to=0.1, by=0.025) # range of chi
-#
-parametset<- expand.grid(BetaV,RhoV,ChiV)
-dim(parametset)
-EtaV<-rep(0.1,length(parametset[,1]))
-paramsV<-cbind(parametset,EtaV)
-nonV = matrix(c(
-  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-  ERA.0=1000,INFA.0=5000, RECA.0=50000,
-  SPA.0=0.4994506,SPJ.0=0.5882353),
-  ncol=14,
-  nrow=length(parametset[,1]),
-  byrow=T) #binded with non-varying parameters
-dimnames(nonV)[[2]]=c("SUSJ.0","MDAJ.0","SUSJM.0","EIJ.0",
-                      "ERJ.0","INFJ.0","RECJ.0","SUSA.0",
-                      "EIA.0","ERA.0","INFA.0","RECA.0",
-                      "SPA.0","SPJ.0") # naming non-varying columns
-
-parsV<-cbind(paramsV,nonV)
-
-BETA = as.numeric(parsV[,1])
-RHO = as.numeric(parsV[,2])
-CHI = as.numeric(parsV[,3])
-ETA = as.numeric(parsV[,4])
-SUSJ.0 = as.numeric(parsV[,5])
-MDAJ.0 = as.numeric(parsV[,6])
-SUSJM.0 = as.numeric(parsV[,7])
-EIJ.0 = as.numeric(parsV[,8])
-ERJ.0 = as.numeric(parsV[,9])
-INFJ.0 = as.numeric(parsV[,10])
-RECJ.0 = as.numeric(parsV[,11])
-SUSA.0 = as.numeric(parsV[,12])
-EIA.0 = as.numeric(parsV[,13])
-ERA.0 = as.numeric(parsV[,14])
-INFA.0 = as.numeric(parsV[,15])
-RECA.0 = as.numeric(parsV[,16])
-SPA.0 = as.numeric(parsV[,17])
-SPJ.0 = as.numeric(parsV[,18])
-
-params<-cbind(
-  BETA,
-  RHO,
-  CHI,
-  ETA,
-  SUSJ.0,
-  MDAJ.0,
-  SUSJM.0,
-  EIJ.0,
-  ERJ.0,
-  INFJ.0,
-  RECJ.0,
-  SUSA.0,
-  EIA.0,
-  ERA.0,
-  INFA.0,
-  RECA.0,
-  SPA.0,
-  SPJ.0
-)
-
-results<-array(NA,dim=c(length(parametset[,1]),3))
-## nb check # particles - reduced for training
-for (j in 1:length(params[,1])){
-  results[j,1]<-logLik(pfilter(lbvdat,params=c(params[j,]),Np=1000,max.fail=1000,tol=1e-20))
-  #pf<-pfilter(lbvdat,params=c(params[j,]),Np=6000,max.fail=1000,tol=1e-20)
-  results[j,2:3]<-#c(logLik(pf))}
-    #
-    c(params[j,1],params[j,2])
-}
-
-##
-
-library(akima)
-library(lattice)
-library(tgp)
-library(rgl)
-library(fields)
-
-rholab<-expression(symbol(rho))
-betalab<-expression(symbol(beta))
-chilab<-expression(symbol(chi))
-
-results<-cbind(results,params[,3])
-colnames(results)<-c("LL","beta","rho","im")
-## find lowest logLik and plot rho and chi values for those
-results<-as.data.frame(results)
-results$beta[which(results[,1]==min(results[,1]))]
-results$rho[which(results[,1]==min(results[,1]))]
-results$im[which(results[,1]==min(results[,1]))]
-
-parsplot <- expand.grid(RhoV,ChiV)
-parsplotres<-cbind(parsplot,ChiV)*NA
-
-library(data.table)
-
-d <- data.table(results)
-rest<-d[, min(LL, na.rm=TRUE), by=c("rho","im")]
-
-library(akima)
-library(lattice)
-library(tgp)
-library(rgl)
-library(fields)
-
-rholab<-expression(symbol(rho))
-betalab<-expression(symbol(beta))
-chilab<-expression(symbol(chi))
-
-zzg <- interp(rest$rho,rest$im,rest$V1)
-
-image(zzg,ann=T,ylab=rholab,xlab=chilab)
-contour(zzg,add=T,labcex=1,drawlabels=T,nlevels=10)
-
-#####################################
+########################
+tiff("ll_beta_rho_surf.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 par(omi=c(1,1,0.5,1))
-par(mai=c(0.8,0.8,0.8,0.8))
+par(mai=c(1,1,0.8,0.8))
 
 surface(zzg,#col ="#FFFFFF",
-        xlab=rholab,ylab=chilab,
+        ylab=rholab,xlab=betalab,
         #zlim=c(0,10),
         labcex=1)
-#contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=50)
+# contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=10)
+#surface(zzg,#col ="#FFFFFF",
+#        ylab=rholab,xlab=betalab,
+#        xlim=c(0,10),ylim=c(0,0.5),
+#        labcex=1)
 
-#plot(results[,1])
-min(results[,1])
-results[results[,1]==min(results[,1]),]
-minLL<-as.data.frame((results[results[,1]==min(results[,1]),]))
-#names(minLL)<-c("negll","Beta","Rho","Chi")
-points(x=minLL$rho,y=minLL$im,pch=16,col="pink")
-#####################################################
-# ADD DETAIL
-surface(zzg,#col ="#FFFFFF",
-        xlab=rholab,ylab=chilab,
-        ylim=c(0,4e-04),xlim=c(0.1,0.5),
-        zlim=c(-550,-200),
-        labcex=1)
-contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=20)
+points(x=maxLL$Beta,y=maxLL$Rho,pch=16,col="white")
+#points(x=maxLL[2,],y=maxLL[3,],pch=16,col="white")
+dev.off()
 
-#plot(results[,1])
-min(results[,1])
-results[results[,1]==min(results[,1]),]
-minLL<-as.data.frame((results[results[,1]==min(results[,1]),]))
-#names(minLL)<-c("negll","Beta","Rho","Chi")
-points(x=minLL$rho,y=minLL$im,pch=16,col="pink")
+#########################
 
-#
-#resdf<-as.data.frame(results)#,value=cut(results[,1],breaks=seq(min(results[,1]),max(results[,1]),25)))
-#names(resdf)<-c("nll","beta","rho")#,"NegLL")
-#library(ggplot2)
-#p <- ggplot(resdf) + 
+# resdf<-as.data.frame(results)#,value=cut(results[,1],breaks=seq(min(results[,1]),max(results[,1]),25)))
+# names(resdf)<-c("nll","beta","rho")#,"NegLL")
+# library(ggplot2)
+# p <- ggplot(resdf) + 
 #  geom_tile(aes(beta,rho,fill=nll)) + 
 #  geom_contour(aes(x=beta,y=rho,z=nll), colour="white",bins=25) 
-#p
-#p = p + geom_point(aes(y=0.33, x=32.4),colour="red")
-#p
+# p
+# p = p + geom_point(aes(y=0.33, x=32.4),colour="red")
+# p
 ## to here..
 #write.csv(resdf,file="pfilterres.csv")
 #test<-read.csv("pfilterres.csv",header=T)
-## 
+#results<-test[2:4]
+#head(results)
+########
+
+tiff("ll_beta_rho_surf_v1.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+split.screen(rbind(c(0.1,0.45,0.55, 0.9), 
+                   c(0.55, 0.9, 0.55, 0.9),
+                   c(0.55, 0.9, 0.1, 0.45)))
+
+#plot(1:100, rnorm(100), xaxs = "i", ylim = c(-3, 3), xaxt = "n")
+#axis(1, at = seq(0, 100, 20))
+#par(omi=c(1,1,0.5,1))
+#par(mai=c(1,1,0.8,0.8))
+
+screen(2)
+par(mar = c(0, 0, 0, 0))
+
+#surface(zzg,#col ="#FFFFFF",
+#        ylab=rholab,xlab=betalab,
+#        #zlim=c(0,10),
+#        labcex=1)
+image(zzg,ann=T,xlim=c(0,max(results[,2])),ylim=c(0,max(results[,3])),
+      ylab=rholab,xlab=betalab,col=tim.colors(10))
+
+abline(h=maxLL$Rho,col="white",lty=1)
+abline(v=maxLL$Beta,col="white",lty=1)
+
+screen(1)
+par(mar = c(0, 0, 0, 0))
+
+rhop<-which(results[,3]==maxLL$Rho)
+
+betap<-which(results[,2]==maxLL$Beta)
+
+#results[rhop,]
+plot(results[betap,1],results[betap,3],type="l",ylab="Negative log-likelihood",xlab=rholab,
+     xlim = rev(range(results[betap,1])))
+
+screen(3)
+par(mar = c(0, 0, 0, 0))
+
+#results[betap,]
+plot(results[rhop,2],results[rhop,1],type="l",ylab="Negative log-likelihood",xlab=betalab,
+     ylim = rev(range(results[rhop,1])))
+
+close.screen(all.screens = TRUE)
+dev.off()
 ##
-## simulate using the estimated pars
-params <- c(
-  BETA=38.01,
-  RHO=0.251, # * 5 is to ensure infection persists
-  CHI=7.51e-05,
-  ETA=0.01,# check data
-  SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-  RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-  ERA.0=1000,INFA.0=5000, RECA.0=50000,
-  SPA.0=0.4994506,SPJ.0=0.5882353) # this adds to the initial conditions given the state variables
-
-sim <- simulate(sir,params=params,seed=3493885L,nsim=1,states=F,obs=F)#,as.data.frame=T) # 
-class(sir) # pomp object
-class(sim) # data frame - even if I remove "as.data.frame" in the above code (sim)
-
-plot(sim)
-
-##########################################################
+####################################
 ## for LHS parameter set
 ## Calling requisite libraries for parallel computing
 #
@@ -825,6 +525,9 @@ plot(sim)
 #
 ## ~~~~~~~~~~ LHS SAMPLING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#############
 # NB not testing K - carrying cap, or rate of aging..
+dyn.unload("lbvseirNoSeasFreqTwoParsMeasure.dll")
+dyn.unload("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
+
 dyn.unload("lbvseirNoSeasFreqTwoParsMeasure.dll")
 dyn.unload("lbvseirNoSeasFreqMeasure.dll")
 
@@ -864,24 +567,24 @@ pomp(
 
 library(lhs)
 
-nspaces=100 ## how many bins/intervals, 100 needed for PRCC
+nspaces=500 ## how many bins/intervals, 100 needed for PRCC
 
 hypercube=randomLHS(n=nspaces, k=10) ## function with N columns
 dimnames(hypercube)[[2]]=c("beta","mu","delta","alpha","rho",
                            "sigma","K",#"epsilon",
                            "tau","psi",#"k",
                            "s")#,
-                           #"phi")  # named columns with parameter names
+#"phi")  # named columns with parameter names
 
-mins = c( 				    ## set mins for each parameters-exclude those not to be varied if any
-  beta= 1.8,		     # transmission 
+mins = c(   			    ## set mins for each parameters-exclude those not to be varied if any
+  beta= 0.6,		     # transmission 
   mu= 0.0000510492,  			# natural mortality from my CMR study
   delta= 0.0002312247, 			# juvenile mortality rate
   alpha= 0.02,			# dis induced mortality
   rho= 0.03,				# probability that exposure/infection will lead to infection & infectiousness (and dead)
   sigma= 0.002083333,			# incubation period 
   K= 100000,			      # K, however, population size fluctuates...up to >1*10^6
-#  epsilon= 1/10,				# rate of aging for those juveniles, should be ~ annual
+  #  epsilon= 1/10,				# rate of aging for those juveniles, should be ~ annual
   tau= 0.004166667, 	      # rate of seroconversion
   psi= 10,			######### this will need to be 1/psi for analysis 
   #k=,        			# nb this is birth rate which halved
@@ -889,14 +592,14 @@ mins = c( 				    ## set mins for each parameters-exclude those not to be varied
 #  phi=0.01)
 
 maxs = c( 				    ## set mins for each parameters-exclude those not to be varied if any
-  beta= 180,           # transmission
+  beta= 60,           # transmission
   mu= 0.00510492,  	          # natural mortality from my CMR study
   delta= 0.02312247,            # juvenile mortality rate
   alpha= 0.9,		    # dis induced mortality
   rho= 0.99,			    # probability 
   sigma= 0.2,          # incubation period 
   K= 100000*10,			    # K, however, population size fluctuates...up to >1*10^6
-#  epsilon= 1*10,	                # rate of aging for those juveniles, should be ~ annual
+  #  epsilon= 1*10,	                # rate of aging for those juveniles, should be ~ annual
   tau= 0.4167,         # rate of seroconversion
   psi= 200,      ###### will need to be 1/psi for the model
   #k=1.5,                       # nb this is peak
@@ -929,9 +632,9 @@ nonVarying = matrix(c(
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
   ERA.0=1000,INFA.0=5000, RECA.0=50000,
   SPA.0=0.4994506,SPJ.0=0.5882353),
-              ncol=19,
-              nrow=100,
-              byrow=T) #binded with non-varying parameters
+  ncol=19,
+  nrow=100,
+  byrow=T) #binded with non-varying parameters
 
 
 dimnames(nonVarying)[[2]]=c("omega","epsilon","phi","k","eta","SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0") # naming non-varying columns
@@ -973,9 +676,9 @@ dimnames(fullParamSets)[[2]]=c("OMEGA", # 1
                                "K",
                                "TAU",
                                "PSI",
-                              # "KAPPA",
+                               # "KAPPA",
                                "S",
-                              "GAMMA") # 30
+                               "GAMMA") # 30
 
 # order for pomp/C model:  
 BETA = fullParamSets[,20]
@@ -1047,34 +750,34 @@ results[1,,]
 results<-array(NA,dim=c(100,1,5))
 ## change # sims
 for (j in 1:length(paramset[,1])){
-out <-simulate(sir,params=c(paramset[j,]),
-                seed=1493885L,nsim=100,states=T,obs=F,as.data.frame=T) #
-outres <- out[seq(from=9126,to=912600,by=9126),] # select last #s
-N = array(0,c(100,5)) # same dimensions as No. runs * outputs I want
-for (i in 1:100){ # each stochastic run
-  N[i,1]<-sum(outres[i,1:12])
-  N[i,2]<-(sum(outres[i,6],outres[i,11])/sum(outres[i,1:12]))*100 # prevalence; total
-  N[i,3]<-((outres[i,12])/(sum(outres[i,8:12])))*100 # adult seroprevalence; total
-  N[i,4]<-ifelse(sum(outres[i,1:12])>0,1,0) # population persistence for each run
-  N[i,5]<-ifelse(sum(outres[i,6],outres[i,11])>0,1,0) # pathogen persistence for each run
-}
-N[is.na(N)]<- 0
-## now average
-M = array(0,c(1,5))
-M[1] = mean(N[1:100,1]) # population size
-M[2] = mean(N[1:100,2]) # prevalence
-M[3] = mean(N[1:100,3]) # adult seroprevalence
-M[4] = mean(N[1:100,4]) # mean pop persistence
-M[5] = mean(N[1:100,5]) # mean path persistence
-rm(out)
-results[j,,]<-M
+  out <-simulate(sir,params=c(paramset[j,]),
+                 seed=1493885L,nsim=100,states=T,obs=F,as.data.frame=T) #
+  outres <- out[seq(from=9126,to=912600,by=9126),] # select last #s
+  N = array(0,c(100,5)) # same dimensions as No. runs * outputs I want
+  for (i in 1:100){ # each stochastic run
+    N[i,1]<-sum(outres[i,1:12])
+    N[i,2]<-(sum(outres[i,6],outres[i,11])/sum(outres[i,1:12]))*100 # prevalence; total
+    N[i,3]<-((outres[i,12])/(sum(outres[i,8:12])))*100 # adult seroprevalence; total
+    N[i,4]<-ifelse(sum(outres[i,1:12])>0,1,0) # population persistence for each run
+    N[i,5]<-ifelse(sum(outres[i,6],outres[i,11])>0,1,0) # pathogen persistence for each run
+  }
+  N[is.na(N)]<- 0
+  ## now average
+  M = array(0,c(1,5))
+  M[1] = mean(N[1:100,1]) # population size
+  M[2] = mean(N[1:100,2]) # prevalence
+  M[3] = mean(N[1:100,3]) # adult seroprevalence
+  M[4] = mean(N[1:100,4]) # mean pop persistence
+  M[5] = mean(N[1:100,5]) # mean path persistence
+  rm(out)
+  results[j,,]<-M
 }
 #
 #########################################################33
 
 w<-makeCluster(1,type="SOCK") # return to one core
 
-  ############################################################3
+############################################################3
 ## need matrix of results...
 X<-aperm(results,c(1,2,3))
 dim(X)<-c(100,5)
@@ -1181,7 +884,7 @@ prcc = function( par.mat, model.output, routine = "blower",
           
           C.temp[j,l]=sum((work.mat[,j]-ave.rank)*(work.mat[,l]-ave.rank))/
             sqrt(sum((work.mat[,j]-ave.rank)^2)*
-            sum((work.mat[,l]-ave.rank)^2))
+                   sum((work.mat[,l]-ave.rank)^2))
         }
       }
       
@@ -1302,42 +1005,43 @@ plot.prcc = function(prcc.obj,alpha=0.05,...){
 # prcc with stoch simulation results...
 res<-cbind(X[,1],X[,2],
            X[,3],
-            X[,4], # pop extinction
+           X[,4], # pop extinction
            X[,5])
 dimnames(res)[[2]]<-c("Population","Prevalence",
                       "Adult seroprevalence",
                       "Population persistence",
                       "LBV persistence")
 
-# write.csv(res, "results_25yr1000Sens2.csv", row.names=F, na="")
+write.csv(res, "results_25yr1000Sens2.csv", row.names=F, na="")
 
 res<-cbind(#X[,1],#X[,2],
-           #X[,3],
-#            X[,4], # pop extinction
-           X[,5])
-## res<-read.csv("results_25yrSens.csv")#, row.names=F, na="")
+  #X[,3],
+  #            X[,4], # pop extinction
+  X[,5])
+ res<-read.csv("results_25yrSensLBVpers.csv")#, row.names=F, na="")
 
 results=prcc(par.mat=hypercube,model.output=res ## results matrix here...
-               ,routine="blower" # NB removed par names so uses symbols, add [par.names="",]
+             ,routine="blower" # NB removed par names so uses symbols, add [par.names="",]
              ,output.names=c(#"Population size",
-                            #"Prevalence",
-                             #"Adult seroprevalence",
-                             #"Population persistence",
-                             "LBV persistence"))
-
+               #"Prevalence",
+               #"Adult seroprevalence",
+               #"Population persistence",
+               "LBV persistence"))
+tiff("prcc_lbv_pers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 plot.prcc(results,ylim=c(-1,1),cex.sub=1.2)
+dev.off()
 
 ## all works if enough paramets sets.... [otherwise get singular matrix warning..]
 
-# NB not testing K - carrying cap, or rate of aging..
+# NB testing K - carrying cap.
 # no LHS needed
 
 nonVarying = matrix(c(
-  BETA=18.6,
+  BETA=7.5,
   MU=0.000510492,
   DELTA=0.002312247,
   ALPHA=0.2,
-  RHO=0.3,
+  RHO=0.0635,
   SIGMA=1/48,
   #K=1000000,
   EPSILON=1/365,
@@ -1353,7 +1057,7 @@ nonVarying = matrix(c(
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
   ERA.0=1000,INFA.0=5000, RECA.0=50000,
   SPA.0=0.4994506,SPJ.0=0.5882353),
-   ncol=29,
+  ncol=29,
   nrow=40,
   byrow=T) #binded with non-varying parameters
 
@@ -1538,19 +1242,34 @@ tail(X)
 ################################################################################
 # below for K
 
-plot(X[,1],X[,2])
+tiff("k_lbv_all.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+# plot(X[,1],X[,2])
 # plot
 par(mfrow=c(1,3))
 par(mar=c(5, 6, 4, 4) + 0.1)
 
 plot(X[,1],X[,2],pch=16,
-     ylab="Mean prevalence",xlab="Population size",
+     ylab="Mean prevalence (%)",xlab="Population size",
      col="grey25", cex.lab=1.2)
 
 plot(X[,1],X[,3],pch=16,
-     ylab="Mean seroprevalence",xlab="Population size",
+     ylab="Mean seroprevalence (%)",xlab="Population size",
      col="grey25", cex.lab=1.2)
 
 plot(X[,1],X[,5],pch=16,
      ylab="P[persist]",xlab="Population size",
      col="grey25", cex.lab=1.2)
+dev.off()
+##
+tiff("k_lbv_pers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+# plot(X[,1],X[,2])
+# plot
+par(mfrow=c(1,1))
+par(mar=c(5, 6, 4, 4) + 0.1)
+
+plot(X[,1],X[,5],pch=16,
+     ylab="P[persist]",xlab="Population size",
+     col="grey25", cex.lab=1.2)
+dev.off()

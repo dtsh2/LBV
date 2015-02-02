@@ -8,7 +8,21 @@
 // define parameters
 
 #define BETA        (p[parindex[0]]) // transmission rate
-#define RHO        (p[parindex[1]]) // transmission rate
+#define MU          (p[parindex[1]]) // adult death rate
+#define DELTA       (p[parindex[2]]) // juvenile mortality rate
+#define ALPHA		(p[parindex[3]]) // dis induced mortality
+#define RHO			(p[parindex[4]]) // prob infectious
+#define SIGMA		(p[parindex[5]]) // incubation period
+#define K			(p[parindex[6]]) // carrying capacity
+#define EPSILON		(p[parindex[7]]) // rate of juvenile aging
+#define TAU			(p[parindex[8]]) // seroconversion
+#define	PSI			(p[parindex[9]]) // loss of MDA
+#define	KAPPA		(p[parindex[10]]) // birth rate (peak size)
+#define S			(p[parindex[11]]) // synchrony
+#define OMEGA		(p[parindex[12]]) // pulse per yr
+#define PHI			(p[parindex[13]]) // timing during year
+#define GAMMA		(p[parindex[14]]) // rate of juvenile SUSJM aging
+//#define ETA			(p[parindex[15]]) // error in measurement models
 
 // define states
 
@@ -84,21 +98,6 @@ void sir_euler_simulator (double *x, const double *p,
   // define constant values
 
 const double pi = 3.14159265359;
-const double EPSILON=0.002739726;
-const double S=14.35;
-const double OMEGA=0.002739726;
-const double PHI=0.0;
-const double GAMMA=0.003773585;
-  
-  alpha= 0.02,			# dis induced mortality
-  rho= 0.01,				# probability that exposure/infection will lead to infection & infectiousness (and dead)
-  sigma= 0.002083333,			# incubation period 
-#  epsilon= 1/10,				# rate of aging for those juveniles, should be ~ annual
-  tau= 0.004166667, 	      # rate of seroconversion
-  psi= 10,			######### this will need to be 1/psi for analysis 
-  #k=,        			# nb this is birth rate which halved
-  s=14.83/10)#,   # very synchronous
-#  phi=0.01)
 
 
 // in C --- pow(a,b) to do a^b 
