@@ -56,8 +56,8 @@ pomp(
 ) -> sir
 
 params <- c(
-  BETA=6.25,
-  RHO=0.0635,
+  BETA=7.635,
+  RHO=0.0556875,
   SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
   RECJ.0=10000,SUSA.0=50000, EIA.0=100,
  ERA.0=1000,INFA.0=5000, RECA.0=50000,
@@ -146,7 +146,103 @@ legend("topright",c("adults","juveniles"),
        col=c("orange","red"),lty=1,bty="n")
 dev.off()
 #########################################################
+## multiple sims...
+#
+sim <- simulate(sir,params=c(params),#seed=3593885L,
+                nsim=100,states=T,obs=F,as.data.frame=T) # 
+class(sir) # pomp object
+class(sim) # data frame - change states, obs and data.frame if want pomp obj
 
+with(sim,plot(time,SPA,type="n"))
+for(i in unique(sim$sim))
+  with(sim[ sim$sim==i,],lines(time,SPA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$SPA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="red")
+
+simspa<-test[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)]
+
+for(i in unique(sim$sim))
+  with(sim[ sim$sim==i,],lines(time,SPJ,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$SPJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+
+simspj<-test[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)]
+
+## plots Ns
+
+tiff("mean_numbers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+with(sim,plot(time,SUSA,type="n",xlim=c(7000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+  sim$RECA[sim$RECA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+test<-tapply(sim$RECA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black",lwd=2)
+
+#for(i in unique(sim$sim))
+  sim$SUSA[sim$SUSA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue",lwd=2)
+
+#dev.off()
+
+##
+#tiff("juv_points.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+#with(sim,plot(time,SUSJ,type="n",xlim=c(6000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+#  with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+sim$RECJ[sim$RECJ==0] <- NA
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black",lty=3,lwd=2)
+
+#for(i in unique(sim$sim))
+  sim$MDA[sim$MDA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="green",lty=3,lwd=2)
+
+#for(i in unique(sim$sim))
+  sim$SUSJ[sim$SUSJ==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue",lty=3,lwd=2)
+
+legend("topleft",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity","susceptibe juvenile"),
+       col=c("black","blue","black","green","blue"),lty=c(1,1,3,3,3),lwd=2,
+       cex=0.9,bg="white",box.col="white")
+box(col="black")
+dev.off()
+
+# N infected
+tiff("inf_points.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+with(sim,plot(time,INFA,type="n",xlim=c(8000,9000),ylim=c(0,300),ylab="numbers"))
+#sim$INFA[sim$INFA==0] <- NA
+for(i in unique(sim$sim))
+  with(sim[ sim$sim==i,],points(time, INFA,col=adjustcolor("orange", alpha=0.5)))
+#sim$INFA[sim$INFA==0] <- NA
+test<-tapply(sim$INFA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+
+for(i in unique(sim$sim))
+#sim$INFJ[sim$INFJ==0] <- NA
+  with(sim[ sim$sim==i,],points(time, INFJ,col=adjustcolor("red", alpha=0.5)))
+#sim$INFJ[sim$INFJ==0] <- NA
+test<-tapply(sim$INFJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="white")
+
+legend("topright",c("juvenile","adult"),col=c("orange","red"),pch=16,bty="n")
+dev.off()
+##
+## library(ggplot2)
+#plot
+## ggplot(data=data,aes(times,norm,colour=as.factor(sim))) +
+##  geom_line()
+
+#
+#######
 
 lbvd<-read.csv("lbv_data_plustime.csv")
 DSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
@@ -161,40 +257,20 @@ times<-lbvd$cumulative_time
 #
 lbv.new<-cbind(times,DSPJ,DSPA,DRECJ,DRECA,DPOPJ,DPOPA)
 
-# for all parameter sets....
-res1<-array(NA,dim=c(100,12,2))
-for (j in 1:100){
-## change # sims
-  sim <- simulate(sir,params=c(params),#seed=3493885L,
-                  nsim=1,states=T,obs=F,as.data.frame=T) # 
-  outres <- sim[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455),] # select last #s
-  N = array(NA,c(12,2)) # same dimensions as No. runs * outputs I want
-  for (i in 1:12){  
-  N[i,1]<-outres[i,13]
-  N[i,2]<-outres[i,14]
-  }
-  res1[j,,]<-N
-}
-res2<-array(NA,dim=c(12,2))
-res2[,1]<-colMeans(res1[,,1])
-res2[,2]<-colMeans(res1[,,2])
-plot(res2[,2])
-#
-
-cr<-cor(c(res2[,1],res2[,2]),c(DSPA,DSPJ))
+cr<-cor(c(simspa,simspj),c(DSPA,DSPJ))
 cr
-crt<-cor.test(c(res2[,1],res2[,2]),c(DSPA,DSPJ))
+crt<-cor.test(c(simspa,simspj),c(DSPA,DSPJ))
 crt
-lmp<-lm(c(DSPA,DSPJ)~(c(res2[,1],res2[,2])))
+lmp<-lm(c(DSPA,DSPJ)~(c(simspa,simspj)))
 
 tiff("cor_pred_vs_data.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
-plot(c(res2[,1],res2[,2]),c(DSPA,DSPJ),ylim=c(0,max(c(DSPA,DSPJ))),xlim=c(0,max(c(res2[,1],res2[,2]))),col=c(rep("red",12),rep("blue",12)),
+plot(c(simspa,simspj),c(DSPA,DSPJ),ylim=c(0,max(c(DSPA,DSPJ))),xlim=c(0,max(c(simspa,simspj))),col=c(rep("red",12),rep("blue",12)),
      ylab="Mean seroprevalence (%)",xlab="Predicted seroprevalence (%)",pch=19)
 legend("topleft",c("juvenile","adult"),col=c("blue","red"),pch=19,bty="n")
 abline(lmp)
 corval<-format(round(cr[1],3))
 corlab<-bquote(plain(R==.(corval)))
-text(c(0.15),(0.05),corlab)
+text(c(0.25),(0.45),corlab)
 dev.off()
 
 #sim <- simulate(sir,params=c(params),seed=3593885L,
@@ -237,26 +313,144 @@ for(ii in 1:12)
 }
 
 ## Plot data vs the true underlying epidemic.
-tiff("sp_data.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
-
-plot(lbv.new$times, lbv.new$DSPA, type="l", col="red", bty = "n",ylim=c(0,1),
-     #ylim = c(0, max(lbv.new$SpA.ci.u)), 
-     xlab = "days", ylab = "seroprevalence")
+tiff("sp_data_sim.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#plot(lbv.new$times, lbv.new$DSPA, type="l", col="red", bty = "n",ylim=c(0,1),
+#     #ylim = c(0, max(lbv.new$SpA.ci.u)), 
+#     xlab = "days", ylab = "seroprevalence")
 ## Add data
-points(lbv.new$times, lbv.new$DSPA, col = "red", pch = 19)
+plot(lbv.new$times, lbv.new$DSPA, col = "red", pch = 19,ylim=c(0,1.5),
+     xlab = "days", ylab = "seroprevalence (%)",yaxt="n")
+axis(2,at=c(0,0.5,1))
 ## Add CIs
 arrows(lbv.new$times, lbv.new$SpA.ci.l, lbv.new$times, lbv.new$SpA.ci.u, length = .01,
-       angle = 90, code = 3,col="red")
-lines(lbv.new$times, lbv.new$DSPJ, type="l", col="blue")
+       angle = 90, code = 3,lty=3,col="red")
+# lines(lbv.new$times, lbv.new$DSPJ, type="l", col="blue")
 ## Add data
 points(lbv.new$times, lbv.new$DSPJ, col = "blue", pch = 19)
 ## Add CIs
 arrows(lbv.new$times, lbv.new$SpJ.ci.l, lbv.new$times, lbv.new$SpJ.ci.u, length = .01,
-       angle = 90, code = 3,col="blue")
+       angle = 90, code = 3,lty=3,col="blue")
 ## Add legends
-legend("topright", c("Adult", "Juvenile"),
-       col=c("red","blue"),lty=1,bty="n")
+legend("topleft", c("data", "simulation mean",
+                "adult", "juvenile","95% CI data"),
+       col=c("black","black","red","blue","black"),pch=c(16,1,16,16,NA),
+       lty=c(0,0,0,0,3),lwd=c(0,0,0,0,1),bty="n")
+
+points(lbv.new$times, simspa, col = "red", pch = 1)
+points(lbv.new$times, simspj, col = "blue", pch = 1)
+
+par(fig = c(0.5, 1, 0.4, 1), #mar=c(0,0,0,0),
+    new=TRUE)
+#par(mgp = c(0, 1, 0))
+plot(c(simspa,simspj),c(DSPA,DSPJ),ylim=c(0,max(c(DSPA,DSPJ))),
+     xlim=c(0,max(c(simspa,simspj))),col=c(rep("red",12),rep("blue",12)),
+     ylab="",xlab="",pch=19)
+#legend("topleft",c("juvenile","adult"),col=c("blue","red"),pch=19,bty="n")
+mtext("predicted (%)",side=1,line=2)
+mtext("data (%)",side=2,line=2)
+abline(lmp)
+corval<-format(round(cr[1],3))
+corlab<-bquote(plain(R==.(corval)))
+text(c(0.25),(0.45),corlab)
+
 dev.off()
+
+## for all parameter sets....
+# res1<-array(NA,dim=c(100,12,2))
+# for (j in 1:100){
+## change # sims
+#  sim <- simulate(sir,params=c(params),#seed=3493885L,
+#                  nsim=1,states=T,obs=F,as.data.frame=T) # 
+#  outres <- sim[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455),] # select last #s
+#  N = array(NA,c(12,2)) # same dimensions as No. runs * outputs I want
+#  for (i in 1:12){  
+#  N[i,1]<-outres[i,13]
+#  N[i,2]<-outres[i,14]
+#  }
+#  res1[j,,]<-N
+#}
+#res2<-array(NA,dim=c(12,2))
+#res2[,1]<-colMeans(res1[,,1])
+#res2[,2]<-colMeans(res1[,,2])
+#plot(res2[,2])
+#
+#
+#cr<-cor(c(res2[,1],res2[,2]),c(DSPA,DSPJ))
+#cr
+#crt<-cor.test(c(res2[,1],res2[,2]),c(DSPA,DSPJ))
+#crt
+#lmp<-lm(c(DSPA,DSPJ)~(c(res2[,1],res2[,2])))
+#
+#tiff("cor_pred_vs_data.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#plot(c(res2[,1],res2[,2]),c(DSPA,DSPJ),ylim=c(0,max(c(DSPA,DSPJ))),xlim=c(0,max(c(res2[,1],res2[,2]))),col=c(rep("red",12),rep("blue",12)),
+#     ylab="Mean seroprevalence (%)",xlab="Predicted seroprevalence (%)",pch=19)
+#legend("topleft",c("juvenile","adult"),col=c("blue","red"),pch=19,bty="n")
+#abline(lmp)
+#corval<-format(round(cr[1],3))
+#corlab<-bquote(plain(R==.(corval)))
+#text(c(0.15),(0.05),corlab)
+#dev.off()
+
+#sim <- simulate(sir,params=c(params),seed=3593885L,
+#                nsim=1,states=T,obs=F,as.data.frame=T) # 
+## correlation
+# plot(c(sim$SPJ[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)],
+#       sim$SPA[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)]),
+#     c(DSPJ,DSPA),ylim=c(0,0.6),xlim=c(0,0.7),col=c(rep("red",12),rep("blue",12)),
+#     ylab="Mean seroprevalence (%)",xlab="Predicted seroprevalence (%)",pch=19)
+#legend("topleft",c("juvenile","adult"),col=c("red","blue"),pch=19,bty="n")
+
+##
+#cr<-cor(c(sim$SPJ[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)],
+#       sim$SPA[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)]),
+#     c(DSPJ,DSPA))
+#
+#cor.test(c(sim$SPJ[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)],
+#      sim$SPA[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)]),
+#    c(DSPJ,DSPA))
+#lmp<-lm(c(DSPJ,DSPA)~(c(sim$SPJ[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)],
+#      sim$SPA[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)])))
+#abline(lmp)
+#text(0.45,0.45,round(cr[1],3))
+
+##
+## binomial CI for SP
+## each sample get CIs
+
+#lbv.new<-as.data.frame(lbv.new)
+#for(ii in 1:12)
+#{
+#  lbv.new$SpA.ci.l[ii] <- binom.test(lbv.new$DRECA[ii], lbv.new$DPOPA[ii])$conf.int[1]
+#  lbv.new$SpA.ci.u[ii] <- binom.test(lbv.new$DRECA[ii], lbv.new$DPOPA[ii])$conf.int[2]    
+#}
+#
+#for(ii in 1:12)
+#{
+#  lbv.new$SpJ.ci.l[ii] <- binom.test(lbv.new$DRECJ[ii], lbv.new$DPOPJ[ii])$conf.int[1]
+#  lbv.new$SpJ.ci.u[ii] <- binom.test(lbv.new$DRECJ[ii], lbv.new$DPOPJ[ii])$conf.int[2]    
+#}
+
+## Plot data vs the true underlying epidemic.
+#tiff("sp_data.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#
+#plot(lbv.new$times, lbv.new$DSPA, type="l", col="red", bty = "n",ylim=c(0,1),
+     #ylim = c(0, max(lbv.new$SpA.ci.u)), 
+#     xlab = "days", ylab = "seroprevalence")
+## Add data
+#points(lbv.new$times, lbv.new$DSPA, col = "red", pch = 19)
+## Add CIs
+#arrows(lbv.new$times, lbv.new$SpA.ci.l, lbv.new$times, lbv.new$SpA.ci.u, length = .01,
+#       angle = 90, code = 3,col="red")
+#lines(lbv.new$times, lbv.new$DSPJ, type="l", col="blue")
+## Add data
+#points(lbv.new$times, lbv.new$DSPJ, col = "blue", pch = 19)
+## Add CIs
+#arrows(lbv.new$times, lbv.new$SpJ.ci.l, lbv.new$times, lbv.new$SpJ.ci.u, length = .01,
+#       angle = 90, code = 3,col="blue")
+## Add legends
+#legend("topright", c("Adult", "Juvenile"),
+#       col=c("red","blue"),lty=1,bty="n")
+#dev.off()
 
 #points(lbv.new$times,
 #     sim$SPJ[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)], 
@@ -567,7 +761,7 @@ pomp(
 
 library(lhs)
 
-nspaces=500 ## how many bins/intervals, 100 needed for PRCC
+nspaces=100 ## how many bins/intervals, 100 needed for PRCC
 
 hypercube=randomLHS(n=nspaces, k=10) ## function with N columns
 dimnames(hypercube)[[2]]=c("beta","mu","delta","alpha","rho",
@@ -721,11 +915,11 @@ results<-array(NA,dim=c(100,1,5))
 
 # for one parameter set....
 out1 <-simulate(sir,params=c(paramset[1,]),
-                seed=1493885L,nsim=1000,states=T,obs=F,as.data.frame=T) #
+                seed=1493885L,nsim=100,states=T,obs=F,as.data.frame=T) #
 
 outres1 <- out1[seq(from=9126,to=912600,by=9126),] # select last #s
-N1 = array(0,c(1000,5)) # same dimensions as No. runs * outputs I want
-for (i in 1:1000){ # each stochastic run
+N1 = array(0,c(100,5)) # same dimensions as No. runs * outputs I want
+for (i in 1:100){ # each stochastic run
   N1[i,1]<-sum(outres1[i,1:12])
   N1[i,2]<-(sum(outres1[i,6],outres1[i,11])/sum(outres1[i,1:12]))*100 # prevalence; total
   N1[i,3]<-((outres1[i,12])/(sum(outres1[i,8:12])))*100 # adult seroprevalence; total
@@ -735,11 +929,11 @@ for (i in 1:1000){ # each stochastic run
 N1[is.na(N1)]<- 0
 ## now average
 M1 = array(0,c(1,5))
-M1[1] = mean(N1[1:1000,1]) # population size
-M1[2] = mean(N1[1:1000,2]) # prevalence
-M1[3] = mean(N1[1:1000,3]) # adult seroprevalence
-M1[4] = mean(N1[1:1000,4]) # pop ext
-M1[5] = mean(N1[1:1000,5]) # lbv ext
+M1[1] = mean(N1[1:100,1]) # population size
+M1[2] = mean(N1[1:100,2]) # prevalence
+M1[3] = mean(N1[1:100,3]) # adult seroprevalence
+M1[4] = mean(N1[1:100,4]) # pop ext
+M1[5] = mean(N1[1:100,5]) # lbv ext
 rm(out1)
 M1
 results[1,,]<-M1
@@ -979,7 +1173,7 @@ prcc = function( par.mat, model.output, routine = "blower",
 
 plot.prcc = function(prcc.obj,alpha=0.05,...){
   
-  x11()
+ # x11()
   par(mfrow=c(ceiling((length(prcc.obj)-1)/3),min(c(length(prcc.obj)-1,3))))
   
   for( i in 2:length(prcc.obj) ){
@@ -1012,13 +1206,12 @@ dimnames(res)[[2]]<-c("Population","Prevalence",
                       "Population persistence",
                       "LBV persistence")
 
-write.csv(res, "results_25yr1000Sens2.csv", row.names=F, na="")
+write.csv(res, "results_25yr1000Sens_PRCC.csv", row.names=F, na="")
 
 res<-cbind(#X[,1],#X[,2],
   #X[,3],
   #            X[,4], # pop extinction
   X[,5])
- res<-read.csv("results_25yrSensLBVpers.csv")#, row.names=F, na="")
 
 results=prcc(par.mat=hypercube,model.output=res ## results matrix here...
              ,routine="blower" # NB removed par names so uses symbols, add [par.names="",]
@@ -1027,8 +1220,8 @@ results=prcc(par.mat=hypercube,model.output=res ## results matrix here...
                #"Adult seroprevalence",
                #"Population persistence",
                "LBV persistence"))
-tiff("prcc_lbv_pers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
-plot.prcc(results,ylim=c(-1,1),cex.sub=1.2)
+tiff("prcc_lbv_pers.tiff",width=6,height=8,units='in',res=300, compression = "lzw")
+plot.prcc(results,ylim=c(-1,1),cex.sub=1.5,cex.axis=1.25,cex.names=1.5)
 dev.off()
 
 ## all works if enough paramets sets.... [otherwise get singular matrix warning..]
@@ -1037,11 +1230,11 @@ dev.off()
 # no LHS needed
 
 nonVarying = matrix(c(
-  BETA=7.5,
+  BETA=7.635,
   MU=0.000510492,
   DELTA=0.002312247,
   ALPHA=0.2,
-  RHO=0.0635,
+  RHO=0.0556875,
   SIGMA=1/48,
   #K=1000000,
   EPSILON=1/365,
@@ -1058,7 +1251,7 @@ nonVarying = matrix(c(
   ERA.0=1000,INFA.0=5000, RECA.0=50000,
   SPA.0=0.4994506,SPJ.0=0.5882353),
   ncol=29,
-  nrow=40,
+  nrow=100,
   byrow=T) #binded with non-varying parameters
 
 dimnames(nonVarying)[[2]]=c("BETA",
@@ -1079,7 +1272,7 @@ dimnames(nonVarying)[[2]]=c("BETA",
                             "SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0") # naming non-varying columns
 
 ## from other code
-Kset=seq(from = 100, to=200000, by =5000)
+Kset=seq(from = 100, to=1000000, by =10000)
 
 fullParamSets = cbind(nonVarying,Kset) # full parameter set
 #fullParamSets[,1] <- fullParamSets[,1]*fullParamSets[,29]
@@ -1202,7 +1395,7 @@ results[1,,]
 
 ##########################################################33
 # for all parameter sets....
-results<-array(NA,dim=c(40,1,5))
+results<-array(NA,dim=c(100,1,5))
 
 for (j in 1:length(paramset[,1])){
   out <-simulate(sir,params=c(paramset[j,]),
@@ -1235,41 +1428,35 @@ w<-makeCluster(1,type="SOCK") # return to one core
 ############################################################3
 ## need matrix of results...
 X<-aperm(results,c(1,2,3))
-dim(X)<-c(40,5)
+dim(X)<-c(100,5)
 head(X)
 tail(X)
 
 ################################################################################
 # below for K
-
-tiff("k_lbv_all.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
-
 # plot(X[,1],X[,2])
 # plot
-par(mfrow=c(1,3))
+par(mfrow=c(1,1))
 par(mar=c(5, 6, 4, 4) + 0.1)
+
+tiff("k_lbv_prev.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(X[,1],X[,2],pch=16,
      ylab="Mean prevalence (%)",xlab="Population size",
      col="grey25", cex.lab=1.2)
+dev.off()
+
+tiff("k_lbv_serop.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(X[,1],X[,3],pch=16,
      ylab="Mean seroprevalence (%)",xlab="Population size",
      col="grey25", cex.lab=1.2)
+dev.off()
+
+tiff("k_lbv_pers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(X[,1],X[,5],pch=16,
      ylab="P[persist]",xlab="Population size",
      col="grey25", cex.lab=1.2)
 dev.off()
 ##
-tiff("k_lbv_pers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
-
-# plot(X[,1],X[,2])
-# plot
-par(mfrow=c(1,1))
-par(mar=c(5, 6, 4, 4) + 0.1)
-
-plot(X[,1],X[,5],pch=16,
-     ylab="P[persist]",xlab="Population size",
-     col="grey25", cex.lab=1.2)
-dev.off()

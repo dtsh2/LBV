@@ -1,330 +1,512 @@
-################################################################################
-##### Writing the pomp objects to estimate the parameters using particle filtering
-##
-## LBV SEIR model with Frequency-dept transmission
-## 25 years
-## Seasonal birthing
-## maternally-derived antibody
-##
-## Sensitivity analysis below
-##
-## clean up
-rm(list=ls())
-# instal r developer toolbox first (Rtools from Cran R)
-## pomp test run lbv
+## Add CIs
+arrows(lbv.new$times, lbv.new$SpJ.ci.l, lbv.new$times, lbv.new$SpJ.ci.u, length = .01,
+angle = 90, code = 3,lty=3,col="blue")
+## Add legends
+legend("topleft", c("data", "simulation mean",
+"adult", "juvenile","95% CI data"),
+col=c("black","black","red","blue","black"),pch=c(16,1,16,16,NA),
+lty=c(0,0,0,0,3),lwd=c(0,0,0,0,1),bty="n")
+points(lbv.new$times, simspa, col = "red", pch = 1)
+points(lbv.new$times, simspj, col = "blue", pch = 1)
+par(fig = c(0.5, 1, 0.4, 1), #mar=c(0,0,0,0),
+new=TRUE)
+#par(mgp = c(0, 1, 0))
+plot(c(simspa,simspj),c(DSPA,DSPJ),ylim=c(0,max(c(DSPA,DSPJ))),
+xlim=c(0,max(c(simspa,simspj))),col=c(rep("red",12),rep("blue",12)),
+ylab="",xlab="",pch=19)
+#legend("topleft",c("juvenile","adult"),col=c("blue","red"),pch=19,bty="n")
+mtext("predicted (%)",side=1,line=2)
+mtext("data (%)",side=2,line=2)
+abline(lmp)
+corval<-format(round(cr[1],3))
+corlab<-bquote(plain(R==.(corval)))
+text(c(0.25),(0.45),corlab)
+dev.off()
+dev.off()
 getwd()
-setwd("~/GitHub/LBV") # revise as necessary
-library(pomp)
-#Compiling C code and loading the dll
-# system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasureBinom.c")
-dyn.load("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
-# dyn.unload("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
-pomp(
-data = data.frame(
-time=seq(from=0,to=365*25,by=1),  # time for simulations to run
-X = NA # dummy variables
-),
-times="time",
-t0=0,
-## native routine for the process simulator:
-rprocess=euler.sim(
-step.fun="sir_euler_simulator",
-delta.t=1,
-#PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file
-## name of the shared-object library containing the PACKAGE="pomp",
-),
-## the order of the state variables assumed in the native routines:
-statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-## the order of the parameters assumed in the native routines:
-paramnames=c("BETA",
-"RHO",
-# "ETA",
-"SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-initializer=function(params,t0,statenames,...){
-x0<-params[paste(statenames,".0",sep="")]
-names(x0)<-statenames
-return(x0)
-}
-) -> sir
-params <- c(
-BETA=6.25,
-RHO=0.0635,
-SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-ERA.0=1000,INFA.0=5000, RECA.0=50000,
-SPA.0=0.4994506,SPJ.0=0.5882353)
-lbvd<-read.csv("lbv_data_plustime.csv")
-DSPJ<-lbvd$DRECJ/(lbvd$DRECJ+lbvd$DSUSJ)
-DSPA<-lbvd$DRECA/(lbvd$DRECA+lbvd$DSUSA)
-DPOPA<-lbvd$DRECA+lbvd$DSUSA
-DPOPJ<-lbvd$DRECJ+lbvd$DSUSJ
-DRECA<-lbvd$DRECA
-DRECJ<-lbvd$DRECJ
-times<-lbvd$cumulative_time
-#
-lbv.new<-cbind(times,DSPJ,DSPA,DRECJ,DRECA,DPOPJ,DPOPA)
-lbv.new<-as.data.frame(lbv.new)
-for(ii in 1:12)
-{
-lbv.new$SpA.ci.l[ii] <- binom.test(lbv.new$DRECA[ii], lbv.new$DPOPA[ii])$conf.int[1]
-lbv.new$SpA.ci.u[ii] <- binom.test(lbv.new$DRECA[ii], lbv.new$DPOPA[ii])$conf.int[2]
-}
-for(ii in 1:12)
-{
-lbv.new$SpJ.ci.l[ii] <- binom.test(lbv.new$DRECJ[ii], lbv.new$DPOPJ[ii])$conf.int[1]
-lbv.new$SpJ.ci.u[ii] <- binom.test(lbv.new$DRECJ[ii], lbv.new$DPOPJ[ii])$conf.int[2]
-}
-pomp(
-data = data.frame(
-time=lbv.new[,1],  # time for simulations to run
-#  DSPJ = lbv.new[,2],
-#  DSPA = lbv.new[,3],
-DRECJ = lbv.new[,4],
-DRECA = lbv.new[,5],
-DPOPJ = lbv.new[,6],
-DPOPA = lbv.new[,7]
-),
-times='time',
-t0=0,
-## native routine for the process simulator:
-rprocess=euler.sim(
-step.fun="sir_euler_simulator",
-delta.t=1,
-#PACKAGE="pomp"  ## may be include if does not work - this is where to look for the c file
-## name of the shared-object library containing the PACKAGE="pomp",
-),
-rmeasure="binomial_rmeasure",
-dmeasure="binomial_dmeasure",
-## the order of the state variables assumed in the native routines:
-statenames=c("SUSJ","MDAJ", "SUSJM","EIJ","ERJ","INFJ", "RECJ", "SUSA", "EIA","ERA","INFA", "RECA","SPA","SPJ"),
-obsnames=c(#"DSPJ","DSPA",
-"DRECJ","DRECA","DPOPJ","DPOPA"),
-## the order of the parameters assumed in the native routines:
-paramnames=c("BETA","RHO",#"ETA",
-"SUSJ.0","MDAJ.0", "SUSJM.0","EIJ.0","ERJ.0","INFJ.0", "RECJ.0", "SUSA.0", "EIA.0","ERA.0","INFA.0", "RECA.0","SPA.0","SPJ.0"),
-initializer=function(params,t0,statenames,...){
-x0<-params[paste(statenames,".0",sep="")]
-names(x0)<-statenames
-return(x0)
-}
-) -> lbvdat
-BetaV = seq(from=0.001,to=40,by=2.5)  # range of beta
-RhoV = seq(from=0.001,to=1, by=0.0625) # range of rho
-#
-BetaV = seq(from=0.01,to=10,by=0.125)  # range of beta
-length(BetaV)
-RhoV = seq(from=0.001,to=0.5, by=0.03125) # range of rho
-length(RhoV)
-RhoV
-0.03125
-0.03125/2
-RhoV = seq(from=0.001,to=0.5, by=0.015625) # range of rho
-length(RhoV)
-0.03125/4
-RhoV = seq(from=0.001,to=0.5, by=0.0078125) # range of rho
-parametset<- expand.grid(BetaV,RhoV)
-dim(parametset)
-#EtaV<-rep(0.1,length(parametset[,1]))
-nonV = matrix(c(
-SUSJ.0=4000,MDAJ.0=4000, SUSJM.0=1000,EIJ.0=1000,ERJ.0=1000,INFJ.0=1000,
-RECJ.0=10000,SUSA.0=50000, EIA.0=100,
-ERA.0=1000,INFA.0=5000, RECA.0=50000,
-SPA.0=0.4994506,SPJ.0=0.5882353),
-ncol=14,
-nrow=length(parametset[,1]),
-byrow=T) #binded with non-varying parameters
-dimnames(nonV)[[2]]=c("SUSJ.0","MDAJ.0","SUSJM.0","EIJ.0",
-"ERJ.0","INFJ.0","RECJ.0","SUSA.0",
-"EIA.0","ERA.0","INFA.0","RECA.0",
-"SPA.0","SPJ.0") # naming non-varying columns
-parsV<-cbind(parametset,nonV)
-BETA = as.numeric(parsV[,1])
-RHO = as.numeric(parsV[,2])
-#ETA = as.numeric(parsV[,3])
-SUSJ.0 = as.numeric(parsV[,3])
-MDAJ.0 = as.numeric(parsV[,4])
-SUSJM.0 = as.numeric(parsV[,5])
-EIJ.0 = as.numeric(parsV[,6])
-ERJ.0 = as.numeric(parsV[,7])
-INFJ.0 = as.numeric(parsV[,8])
-RECJ.0 = as.numeric(parsV[,9])
-SUSA.0 = as.numeric(parsV[,10])
-EIA.0 = as.numeric(parsV[,11])
-ERA.0 = as.numeric(parsV[,12])
-INFA.0 = as.numeric(parsV[,13])
-RECA.0 = as.numeric(parsV[,14])
-SPA.0 = as.numeric(parsV[,15])
-SPJ.0 = as.numeric(parsV[,16])
-params<-cbind(
-BETA,
-RHO,
-#ETA,
-SUSJ.0,
-MDAJ.0,
-SUSJM.0,
-EIJ.0,
-ERJ.0,
-INFJ.0,
-RECJ.0,
-SUSA.0,
-EIA.0,
-ERA.0,
-INFA.0,
-RECA.0,
-SPA.0,
-SPJ.0
-)
-results<-array(NA,dim=c(length(parametset[,1]),3))
-## nb check # particles - reduced for training
-for (j in 1:length(params[,1])){
-results[j,1]<-logLik(pfilter(lbvdat,params=c(params[j,]),Np=100,max.fail=100,tol=1e-20))
-#pf<-pfilter(lbvdat,params=c(params[j,]),Np=6000,max.fail=1000,tol=1e-20)
-results[j,2:3]<-#c(logLik(pf))}
-#
-c(params[j,1],params[j,2])
-}
-library(akima)
-library(lattice)
-library(tgp)
-library(rgl)
-library(fields)
-write.csv(results,file="mll_surface_fine.csv")
-rholab<-expression(symbol(rho))
-betalab<-expression(symbol(beta))
-zzg <- interp(x=results[,2], #
-y=results[,3], #
-z=results[,1],
-duplicate=T)#,grid.len=c(50,50))#,span=0.1)
-max(results[,1])
-results[results[,1]==max(results[,1]),]
-maxLL<-as.data.frame(t(results[results[,1]==max(results[,1]),]))
-names(maxLL)<-c("negll","Beta","Rho")
-image(zzg,ann=T,xlim=c(0,max(results[,2])),ylim=c(0,max(results[,3])),
-ylab=rholab,xlab=betalab)
-#contour(zzg,add=T,labcex=1,drawlabels=T,nlevels=10)
-#contour(zzg,add=F,labcex=1,drawlabels=T,nlevels=100)
-points(x=maxLL$Beta,y=maxLL$Rho,pch=16,col="black")
-points(x=maxLL[2,],y=maxLL[3,],pch=16,col="black")
-par(omi=c(1,1,0.5,1))
-par(mai=c(1,1,0.8,0.8))
-surface(zzg,#col ="#FFFFFF",
-ylab=rholab,xlab=betalab,
-#zlim=c(0,10),
-labcex=1)
-points(x=maxLL$Beta,y=maxLL$Rho,pch=16,col="black")
-points(x=maxLL$Beta,y=maxLL$Rho,pch=16,col="white")
-split.screen(rbind(c(0.1,0.45,0.55, 0.9),
-c(0.55, 0.9, 0.55, 0.9),
-c(0.55, 0.9, 0.1, 0.45)))
-#plot(1:100, rnorm(100), xaxs = "i", ylim = c(-3, 3), xaxt = "n")
-#axis(1, at = seq(0, 100, 20))
-#par(omi=c(1,1,0.5,1))
-#par(mai=c(1,1,0.8,0.8))
-screen(2)
-par(mar = c(0, 0, 0, 0))
-#surface(zzg,#col ="#FFFFFF",
-#        ylab=rholab,xlab=betalab,
-#        #zlim=c(0,10),
-#        labcex=1)
-image(zzg,ann=T,xlim=c(0,max(results[,2])),ylim=c(0,max(results[,3])),
-ylab=rholab,xlab=betalab,col=tim.colors(10))
-abline(h=maxLL[3,],col="white",lty=1)
-abline(v=maxLL[2,],col="white",lty=1)
-maxLL[3,]
-maxLL
-abline(h=maxLL$Rho,col="white",lty=1)
-abline(v=maxLL$Beta,col="white",lty=1)
-screen(1)
-par(mar = c(0, 0, 0, 0))
-rhop<-which(results[,3]==maxLL[3,])
-#results[rhop,]
-plot(results[betap,1],results[betap,3],type="l",ylab="Negative log-likelihood",xlab=rholab,
-xlim = rev(range(results[betap,1])))
-rhop<-which(results[,3]==maxLL[3,])
-betap<-which(results[,2]==maxLL[2,])
-rhop
-betap
-rhop<-which(results[,3]==maxLL$Rho)
-betap<-which(results[,2]==maxLL$Beta)
-betap
-rhop
-plot(results[betap,1],results[betap,3],type="l",ylab="Negative log-likelihood",xlab=rholab,
-xlim = rev(range(results[betap,1])))
-screen(3)
-par(mar = c(0, 0, 0, 0))
-#results[betap,]
-plot(results[rhop,2],results[rhop,1],type="l",ylab="Negative log-likelihood",xlab=betalab,
-ylim = rev(range(results[rhop,1])))
-close.screen(all.screens = TRUE)
-tiff("ll_beta_rho.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
-image(zzg,ann=T,xlim=c(0,max(results[,2])),ylim=c(0,max(results[,3])),
-ylab=rholab,xlab=betalab)
-#contour(zzg,add=T,labcex=1,drawlabels=T,nlevels=10)
-#contour(zzg,add=F,labcex=1,drawlabels=T,nlevels=100)
-points(x=maxLL$Beta,y=maxLL$Rho,pch=16,col="black")
-points(x=maxLL[2,],y=maxLL[3,],pch=16,col="black")
+## Plot data vs the true underlying epidemic.
+tiff("sp_data_sim.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#plot(lbv.new$times, lbv.new$DSPA, type="l", col="red", bty = "n",ylim=c(0,1),
+#     #ylim = c(0, max(lbv.new$SpA.ci.u)),
+#     xlab = "days", ylab = "seroprevalence")
+## Add data
+plot(lbv.new$times, lbv.new$DSPA, col = "red", pch = 19,ylim=c(0,1.5),
+xlab = "days", ylab = "seroprevalence (%)",yaxt="n")
+axis(2,at=c(0,0.5,1))
+## Add CIs
+arrows(lbv.new$times, lbv.new$SpA.ci.l, lbv.new$times, lbv.new$SpA.ci.u, length = .01,
+angle = 90, code = 3,lty=3,col="red")
+# lines(lbv.new$times, lbv.new$DSPJ, type="l", col="blue")
+## Add data
+points(lbv.new$times, lbv.new$DSPJ, col = "blue", pch = 19)
+## Add CIs
+arrows(lbv.new$times, lbv.new$SpJ.ci.l, lbv.new$times, lbv.new$SpJ.ci.u, length = .01,
+angle = 90, code = 3,lty=3,col="blue")
+## Add legends
+legend("topleft", c("data", "simulation mean",
+"adult", "juvenile","95% CI data"),
+col=c("black","black","red","blue","black"),pch=c(16,1,16,16,NA),
+lty=c(0,0,0,0,3),lwd=c(0,0,0,0,1),bty="n")
+points(lbv.new$times, simspa, col = "red", pch = 1)
+points(lbv.new$times, simspj, col = "blue", pch = 1)
+par(fig = c(0.5, 1, 0.4, 1), #mar=c(0,0,0,0),
+new=TRUE)
+#par(mgp = c(0, 1, 0))
+plot(c(simspa,simspj),c(DSPA,DSPJ),ylim=c(0,max(c(DSPA,DSPJ))),
+xlim=c(0,max(c(simspa,simspj))),col=c(rep("red",12),rep("blue",12)),
+ylab="",xlab="",pch=19)
+#legend("topleft",c("juvenile","adult"),col=c("blue","red"),pch=19,bty="n")
+mtext("predicted (%)",side=1,line=2)
+mtext("data (%)",side=2,line=2)
+abline(lmp)
+corval<-format(round(cr[1],3))
+corlab<-bquote(plain(R==.(corval)))
+text(c(0.25),(0.45),corlab)
 dev.off()
-tiff("ll_beta_rho_surf.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
-par(omi=c(1,1,0.5,1))
-par(mai=c(1,1,0.8,0.8))
-surface(zzg,#col ="#FFFFFF",
-ylab=rholab,xlab=betalab,
-#zlim=c(0,10),
-labcex=1)
-# contour(zzg,add=T,labcex=1,drawlabels=F,nlevels=10)
-#surface(zzg,#col ="#FFFFFF",
-#        ylab=rholab,xlab=betalab,
-#        xlim=c(0,10),ylim=c(0,0.5),
-#        labcex=1)
-points(x=maxLL$Beta,y=maxLL$Rho,pch=16,col="white")
-#points(x=maxLL[2,],y=maxLL[3,],pch=16,col="white")
+sim <- simulate(sir,params=c(params),#seed=3593885L,
+nsim=100,states=T,obs=F,as.data.frame=T) #
+class(sir) # pomp object
+class(sim) # data frame - change states, obs and data.frame if want pomp obj
+with(sim,plot(time,SPA,type="n"))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],lines(time,SPA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$SPA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="red")
+with(sim,plot(time,RECA,type="n"))
+with(sim,plot(time,RECA,type="n"),xlim=c(7000,9000))
+with(sim,plot(time,RECA,type="n"),xlim=c(7000,9000))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+with(sim,plot(time,SUSA,type="n",xlim=c(8000,9000)))
+with(sim,plot(time,SUSA,type="n",xlim=c(8000,9000),ylab="numbers"))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+with(sim,plot(time,SUSA,type="n",xlim=c(8000,9000),ylab="numbers"))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time,INFA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$INFA, sim$time, mean, na.rm=T)
+head(test)
+tail(test)
+nzmean <- function(x) {
+zvals <- x==0
+if (all(zvals)) 0 else mean(x[!zvals])
+}
+with(sim,plot(time,INFA,type="n",xlim=c(8000,9000),ylab="numbers"))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time, INFA,col=adjustcolor("orange", alpha=0.5)))
+test<-tapply(sim$INFA, sim$time, nzmean, na.rm=T)
+nzmean <- function(x) {
+if (all(x==0)) 0 else mean(x[x!=0])
+}
+nzmean <- function(x) {
+if (all(x==0)) 0 else mean(x[x!=0])
+}
+test<-tapply(sim$INFA, sim$time, nzmean, na.rm=T)
+with(sim,plot(time,INFA,type="n",xlim=c(8000,9000),ylim=c(500),ylab="numbers"))
+with(sim,plot(time,INFA,type="n",xlim=c(8000,9000),ylim=c(0,500),ylab="numbers"))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time, INFA,col=adjustcolor("orange", alpha=0.5)))
+with(sim,plot(time,INFA,type="n",xlim=c(8200,9000),ylim=c(0,400),ylab="numbers"))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time, INFA,col=adjustcolor("orange", alpha=0.5)))
+test<-tapply(sim$INFA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="yellow")
+test<-tapply(sim$INFJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="darkred")
+nzmean <- function(x) {
+if (x==0) 0 else mean(x[x!=0])
+}
+test<-tapply(sim$INFJ, sim$time, nzmean, na.rm=T)
+class(sim)
+sim$INFA[sim$INFA==0] <- NA
+test<-tapply(sim$INFJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="pink")
+test<-tapply(sim$INFA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="pink")
+sim$INFA[sim$INFA==NA] <- 0
+test<-tapply(sim$INFA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="red")
+with(sim,plot(time,INFA,type="n",xlim=c(8200,9000),ylim=c(0,400),ylab="numbers"))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time, INFA,col=adjustcolor("orange", alpha=0.5)))
+sim$INFJ[sim$INFJ==0] <- NA
+with(sim,plot(time,INFA,type="n",xlim=c(8200,9000),ylim=c(0,400),ylab="numbers"))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time, INFA,col=adjustcolor("orange", alpha=0.5)))
+#sim$INFA[sim$INFA==0] <- NA
+test<-tapply(sim$INFA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time, INFJ,col=adjustcolor("red", alpha=0.5)))
+test<-tapply(sim$INFJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="red")
+lines(1:length(test),test,col="white")
+legend("topright",c("juvenile","adult"),col=c("orange","red"))
+legend("topright",c("juvenile","adult"),col=c("orange","red"),pch=1)
+legend("topright",c("juvenile","adult"),col=c("orange","red"),pch=16)
+with(sim,plot(time,SUSA,type="n",xlim=c(8900,9000),ylab="numbers"))
+for(i in unique(sim$sim))
+sim$RECA[sim$RECA==0] <- NA
+with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+test<-tapply(sim$RECA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+for(i in unique(sim$sim))
+sim$SUSA[sim$SUSA==0] <- NA
+with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="white")
+with(sim,plot(time,SUSA,type="n",xlim=c(8900,9000),ylab="numbers"))
+for(i in unique(sim$sim))
+sim$RECA[sim$RECA==0] <- NA
+with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+test<-tapply(sim$RECA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+for(i in unique(sim$sim))
+sim$SUSA[sim$SUSA==0] <- NA
+with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="white")
+with(sim,plot(time,SUSJ,type="n",xlim=c(8000,9000),ylab="numbers"))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("green", alpha=0.5)))
+with(sim,plot(time,SUSJ,type="n",xlim=c(8990,9000),ylab="numbers"))
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+lines(1:length(test),test,col="black")
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("lightbrown", alpha=0.5)))
+sim$MDA[sim$MDA==0] <- NA
+with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("lightbrown", alpha=0.5)))
+with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("lightbrown", alpha=0.5)))
+with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="white")
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="white")
+plot(1:length(test),test,col="white")
+plot(1:length(test),test,col="blue")
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="white")
+with(sim,plot(time,SUSJ,type="n",xlim=c(8990,9000),ylab="numbers"))
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="grey")
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="white")
+lines(1:length(test),test,col="blue")
+with(sim,plot(time,SUSJ,type="n",xlim=c(0,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+#  with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+#sim$RECJ[sim$RECJ==0] <- NA
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+#  sim$MDA[sim$MDA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="grey")
+#for(i in unique(sim$sim))
+#  sim$SUSJ[sim$SUSJ==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+with(sim,plot(time,SUSJ,type="n",xlim=c(8000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+#  with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+#sim$RECJ[sim$RECJ==0] <- NA
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+#  sim$MDA[sim$MDA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="grey")
+#for(i in unique(sim$sim))
+#  sim$SUSJ[sim$SUSJ==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+with(sim,plot(time,SUSA,type="n",xlim=c(8900,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+sim$RECA[sim$RECA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+test<-tapply(sim$RECA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+sim$SUSA[sim$SUSA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+with(sim,plot(time,SUSJ,type="n",xlim=c(8000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+#  with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+sim$RECJ[sim$RECJ==0] <- NA
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+sim$MDA[sim$MDA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="grey")
+#for(i in unique(sim$sim))
+sim$SUSJ[sim$SUSJ==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+with(sim,plot(time,SUSJ,type="n",xlim=c(6000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+#  with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+sim$RECJ[sim$RECJ==0] <- NA
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+sim$MDA[sim$MDA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="grey")
+#for(i in unique(sim$sim))
+sim$SUSJ[sim$SUSJ==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+sim$RECA[sim$RECA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+test<-tapply(sim$RECA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+sim$SUSA[sim$SUSA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+with(sim,plot(time,SUSA,type="n",xlim=c(8900,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+sim$RECA[sim$RECA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+test<-tapply(sim$RECA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+sim$SUSA[sim$SUSA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+#for(i in unique(sim$sim))
+sim$SUSA[sim$SUSA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+lines(1:length(test),test,col="blue")
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+#dev.off()
+##
+#tiff("juv_points.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#with(sim,plot(time,SUSJ,type="n",xlim=c(6000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+#  with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+sim$RECJ[sim$RECJ==0] <- NA
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+sim$MDA[sim$MDA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="grey")
+#for(i in unique(sim$sim))
+sim$SUSJ[sim$SUSJ==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+with(sim,plot(time,SUSA,type="n",xlim=c(6000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+sim$RECA[sim$RECA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+test<-tapply(sim$RECA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+sim$SUSA[sim$SUSA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+#dev.off()
+##
+#tiff("juv_points.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#with(sim,plot(time,SUSJ,type="n",xlim=c(6000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+#  with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+sim$RECJ[sim$RECJ==0] <- NA
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+sim$MDA[sim$MDA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="grey")
+#for(i in unique(sim$sim))
+sim$SUSJ[sim$SUSJ==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+legend("topright",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity"," susceptibe juvenile"),
+col=c("black","blue","black","grey","blue"),lty=c(1,1,1,3,3))
+legend("topright",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity"," susceptibe juvenile"),
+col=c("black","blue","black","grey","blue"),lty=c(1,1,1,3,3),bty="n")
+with(sim,plot(time,SUSA,type="n",xlim=c(7000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+sim$RECA[sim$RECA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+test<-tapply(sim$RECA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+sim$SUSA[sim$SUSA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+#dev.off()
+##
+#tiff("juv_points.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#with(sim,plot(time,SUSJ,type="n",xlim=c(6000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+#  with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+sim$RECJ[sim$RECJ==0] <- NA
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black",lty=3)
+#for(i in unique(sim$sim))
+sim$MDA[sim$MDA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="grey",lty=3)
+#for(i in unique(sim$sim))
+sim$SUSJ[sim$SUSJ==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue",lty=3)
+legend("topright",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity"," susceptibe juvenile"),
+col=c("black","blue","black","grey","blue"),lty=c(1,1,1,3,3),bty="n")
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="green",lty=3)
+legend("topright",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity"," susceptibe juvenile"),
+col=c("black","blue","black","green","blue"),lty=c(1,1,1,3,3),bty="n")
+legend("top",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity"," susceptibe juvenile"),
+col=c("black","blue","black","green","blue"),lty=c(1,1,1,3,3),bty="n")
+legend("top",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity"," susceptibe juvenile"),
+col=c("black","blue","black","green","blue"),lty=c(1,1,1,3,3),bty="n",cex=0.4)
+with(sim,plot(time,SUSA,type="n",xlim=c(7000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+sim$RECA[sim$RECA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+test<-tapply(sim$RECA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+#for(i in unique(sim$sim))
+sim$SUSA[sim$SUSA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+#dev.off()
+##
+#tiff("juv_points.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#with(sim,plot(time,SUSJ,type="n",xlim=c(6000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+#  with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+sim$RECJ[sim$RECJ==0] <- NA
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black",lty=3)
+#for(i in unique(sim$sim))
+sim$MDA[sim$MDA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="green",lty=3)
+#for(i in unique(sim$sim))
+sim$SUSJ[sim$SUSJ==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue",lty=3)
+legend("top",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity"," susceptibe juvenile"),
+col=c("black","blue","black","green","blue"),lty=c(1,1,1,3,3),bty="n",cex=0.9)
+?legend
+legend("topleft",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity","susceptibe juvenile"),
+col=c("black","blue","black","green","blue"),lty=c(1,1,3,3,3),bty="n",cex=0.9,fill="white")
+legend("topleft",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity","susceptibe juvenile"),
+col=c("black","blue","black","green","blue"),lty=c(1,1,3,3,3),
+bty="n",cex=0.9,bg="white")
 dev.off()
-#########################
-# resdf<-as.data.frame(results)#,value=cut(results[,1],breaks=seq(min(results[,1]),max(results[,1]),25)))
-# names(resdf)<-c("nll","beta","rho")#,"NegLL")
-# library(ggplot2)
-# p <- ggplot(resdf) +
-#  geom_tile(aes(beta,rho,fill=nll)) +
-#  geom_contour(aes(x=beta,y=rho,z=nll), colour="white",bins=25)
-# p
-# p = p + geom_point(aes(y=0.33, x=32.4),colour="red")
-# p
-## to here..
-#write.csv(resdf,file="pfilterres.csv")
-#test<-read.csv("pfilterres.csv",header=T)
-#results<-test[2:4]
-#head(results)
-########
-tiff("ll_beta_rho_surf_v1.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
-split.screen(rbind(c(0.1,0.45,0.55, 0.9),
-c(0.55, 0.9, 0.55, 0.9),
-c(0.55, 0.9, 0.1, 0.45)))
-#plot(1:100, rnorm(100), xaxs = "i", ylim = c(-3, 3), xaxt = "n")
-#axis(1, at = seq(0, 100, 20))
-#par(omi=c(1,1,0.5,1))
-#par(mai=c(1,1,0.8,0.8))
-screen(2)
-par(mar = c(0, 0, 0, 0))
-#surface(zzg,#col ="#FFFFFF",
-#        ylab=rholab,xlab=betalab,
-#        #zlim=c(0,10),
-#        labcex=1)
-image(zzg,ann=T,xlim=c(0,max(results[,2])),ylim=c(0,max(results[,3])),
-ylab=rholab,xlab=betalab,col=tim.colors(10))
-abline(h=maxLL$Rho,col="white",lty=1)
-abline(v=maxLL$Beta,col="white",lty=1)
-screen(1)
-par(mar = c(0, 0, 0, 0))
-rhop<-which(results[,3]==maxLL$Rho)
-betap<-which(results[,2]==maxLL$Beta)
-#results[rhop,]
-plot(results[betap,1],results[betap,3],type="l",ylab="Negative log-likelihood",xlab=rholab,
-xlim = rev(range(results[betap,1])))
-screen(3)
-par(mar = c(0, 0, 0, 0))
-#results[betap,]
-plot(results[rhop,2],results[rhop,1],type="l",ylab="Negative log-likelihood",xlab=betalab,
-ylim = rev(range(results[rhop,1])))
-close.screen(all.screens = TRUE)
+with(sim,plot(time,SUSA,type="n",xlim=c(7000,9000),ylab="numbers"))
+sim$SUSA[sim$SUSA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue")
+legend("topleft",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity","susceptibe juvenile"),
+col=c("black","blue","black","green","blue"),lty=c(1,1,3,3,3),
+bty="n",cex=0.9,bg="white")
+legend("topleft",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity","susceptibe juvenile"),
+col=c("black","blue","black","green","blue"),lty=c(1,1,3,3,3),
+cex=0.9,bg="white")
+legend("topleft",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity","susceptibe juvenile"),
+col=c("black","blue","black","green","blue"),lty=c(1,1,3,3,3),
+cex=0.9,bg="white",box.col="white")
+box(col="black")
+tiff("mean_numbers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+with(sim,plot(time,SUSA,type="n",xlim=c(7000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+sim$RECA[sim$RECA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,RECA,col=adjustcolor("green", alpha=0.5)))
+test<-tapply(sim$RECA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black",lwd=2)
+#for(i in unique(sim$sim))
+sim$SUSA[sim$SUSA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSA,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue",lwd=2)
+#dev.off()
+##
+#tiff("juv_points.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#with(sim,plot(time,SUSJ,type="n",xlim=c(6000,9000),ylab="numbers"))
+#for(i in unique(sim$sim))
+#  with(sim[ sim$sim==i,],points(time,RECJ,col=adjustcolor("darkgreen", alpha=0.5)))
+sim$RECJ[sim$RECJ==0] <- NA
+test<-tapply(sim$RECJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black",lty=3,lwd=2)
+#for(i in unique(sim$sim))
+sim$MDA[sim$MDA==0] <- NA
+#with(sim[ sim$sim==i,],points(time,MDA,col=adjustcolor("grey", alpha=0.5)))
+test<-tapply(sim$MDA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="green",lty=3,lwd=2)
+#for(i in unique(sim$sim))
+sim$SUSJ[sim$SUSJ==0] <- NA
+#with(sim[ sim$sim==i,],points(time,SUSJ,col=adjustcolor("blue", alpha=0.5)))
+test<-tapply(sim$SUSJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="blue",lty=3,lwd=2)
+legend("topleft",c("recovered adult","susceptible adult","recovered juvenile","maternal immunity","susceptibe juvenile"),
+col=c("black","blue","black","green","blue"),lty=c(1,1,3,3,3),lwd=2,
+cex=0.9,bg="white",box.col="white")
+box(col="black")
+dev.off()
+# N infected
+tiff("inf_points.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+with(sim,plot(time,INFA,type="n",xlim=c(8000,9000),ylim=c(0,300),ylab="numbers"))
+#sim$INFA[sim$INFA==0] <- NA
+for(i in unique(sim$sim))
+with(sim[ sim$sim==i,],points(time, INFA,col=adjustcolor("orange", alpha=0.5)))
+#sim$INFA[sim$INFA==0] <- NA
+test<-tapply(sim$INFA, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="black")
+for(i in unique(sim$sim))
+#sim$INFJ[sim$INFJ==0] <- NA
+with(sim[ sim$sim==i,],points(time, INFJ,col=adjustcolor("red", alpha=0.5)))
+#sim$INFJ[sim$INFJ==0] <- NA
+test<-tapply(sim$INFJ, sim$time, mean, na.rm=T)
+lines(1:length(test),test,col="white")
+legend("topright",c("juvenile","adult"),col=c("orange","red"),pch=16,bty="n")
 dev.off()
 savehistory("~/GitHub/LBV/hist_lbv_020315.R")
