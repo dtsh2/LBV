@@ -72,37 +72,41 @@ summary(model4)
 AIC(model2,model3,model4)
 
 ## 
-tiff("foi.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+tiff("foi.tiff",width=8,height=12,units='in',res=300, compression = "lzw")
+par(mfrow=c(2,1))
+par(cex.axis=1.5)
+par(cex.lab=1.5)
 symbols(data$Age,(data$Pos/data$Tot),(data$Tot),
         bg="#0000FF0A",
         #fg="white",bg="red",
-        xlim=c(-1,15),ylim=c(-0.2,1.2),
+         xlim=c(-1,15),ylim=c(-0.2,1.2),
         ylab="Seroprevalence",xlab="Age")
 #text(data$Age, (data$Pos/data$Tot), data$Tot, cex=1)
 text(data$Age, (data$Pos/data$Tot), ".", cex=1)
 #for(i in 1:13) points(i,1.5,cex=i)
+symbols(-0.5,0.9,0.2,inches=F,
+        bg="#0000FF0A",
+        #fg="white",bg="red",
+        add=T)
+text(1,0.9, "size = 1", cex=1.5)
+
 foi<-exp(coef(model2))
-points(data$Age,rep(foi,14),lty=2,type="l")
+plot(data$Age,rep(foi,14),lty=2,type="l",xlim=c(-1,15),
+     ylab="Force of infection",xlab="Age",ylim=c(0,0.3),lwd=1.5)
 #legend(8,0,"constant force of infection",lty=2, cex=1,bty="n")
 
 ## to plot others
 ## but don't, less clear figure
 (coef(model3))
 foi2<--((coef(model3)[1])+2*(coef(model3)[2])*data$Age)
-points(data$Age,foi2,col="red",lty=2,type="l")
+points(data$Age,foi2,col="red",lty=2,type="l",lwd=1.5)
 
 (coef(model4))
 foi3<--(((coef(model4))[1])+2*((coef(model4))[2])*data$Age+3*((coef(model4))[3])*data$Age^2)
-points(data$Age,foi3,col="blue",lty=2,type="l")
+points(data$Age,foi3,col="blue",lty=2,type="l",lwd=1.5)
 
 abline(h=0,col="grey")
 
-legend("topleft",c("Constant","Quadratic","Polynomial"),lty=2,col=c("black","red","blue"),bty="n")
-
-symbols(-0.5,0.9,0.2,inches=F,
-        bg="#0000FF0A",
-        #fg="white",bg="red",
-add=T)
-text(1,0.9, "size = 1", cex=1)
+legend("topleft",c("Constant","Quadratic","Polynomial"),lty=2,col=c("black","red","blue"),bty="n",lwd=1.5,cex=1.5)
 
 dev.off()
