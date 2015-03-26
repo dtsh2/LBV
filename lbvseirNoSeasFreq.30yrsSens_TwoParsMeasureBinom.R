@@ -605,7 +605,7 @@ zzg <- interp(x=results[,2], #
 #plot(results[,1])
 max(results[,1])
 results[results[,1]==max(results[,1]),]
-maxLL<-as.data.frame(t(results[results[,1]==max(results[,1]),]))
+maxLL<-as.data.frame(results[results[,1]==max(results[,1]),])
 names(maxLL)<-c("negll","Beta","Rho")
 
 tiff("ll_beta_rho.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
@@ -656,7 +656,7 @@ dev.off()
 #head(results)
 ########
 
-tiff("ll_beta_rho_surf_v1.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+tiff("ll_beta_rho_surf_v2.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 split.screen(rbind(c(0.1,0.45,0.55, 0.9), 
                    c(0.55, 0.9, 0.55, 0.9),
@@ -690,13 +690,14 @@ betap<-which(results[,2]==maxLL$Beta)
 #results[rhop,]
 plot(results[betap,1],results[betap,3],type="l",ylab="Negative log-likelihood",xlab=rholab,
      xlim = rev(range(results[betap,1])))
-
+mtext(text=rholab,side=2,line=3)
 screen(3)
 par(mar = c(0, 0, 0, 0))
 
 #results[betap,]
 plot(results[rhop,2],results[rhop,1],type="l",ylab="Negative log-likelihood",xlab=betalab,
      ylim = rev(range(results[rhop,1])))
+mtext(text=betalab,side=1,line=2)
 
 close.screen(all.screens = TRUE)
 dev.off()
