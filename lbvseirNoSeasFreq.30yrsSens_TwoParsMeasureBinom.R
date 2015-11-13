@@ -1383,9 +1383,10 @@ for (i in 1:100){ # each stochastic run
 }
 N1[is.na(N1)]<- 0
 ## now average
+N1[,2][N1[,2] == 0] <- NA
 M1 = array(0,c(1,5))
 M1[1] = mean(N1[1:100,1]) # population size
-M1[2] = mean(N1[1:100,2]) # prevalence
+M1[2] = mean(N1[1:100,2],na.rm=T) # prevalence
 M1[3] = mean(N1[1:100,3]) # adult seroprevalence
 M1[4] = mean(N1[1:100,4]) # adult seroprevalence
 M1[5] = mean(N1[1:100,5]) # adult seroprevalence
@@ -1411,11 +1412,13 @@ for (j in 1:length(paramset[,1])){
     N[i,5]<-ifelse(sum(outres[i,6],outres[i,11])>0,1,0) # pathogen extinction for each run
   }
   N[is.na(N)]<- 0
+  N[,2][N[,2] == 0] <- NA
+  N[,3][N[,3] == 0] <- NA
   ## now average
   M = array(0,c(1,5))
   M[1] = mean(N[1:100,1]) # population size
-  M[2] = mean(N[1:100,2]) # prevalence
-  M[3] = mean(N[1:100,3]) # adult seroprevalence
+  M[2] = mean(N[1:100,2],na.rm=T) # prevalence
+  M[3] = mean(N[1:100,3],na.rm=T) # adult seroprevalence
   M[4] = mean(N[1:100,4]) # mean pop extinction
   M[5] = mean(N[1:100,5]) # mean path extinction
   rm(out)
@@ -1444,7 +1447,7 @@ tiff("k_lbv_prev.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(X[,1],X[,2],pch=16,
      ylab="Mean prevalence (%)",xlab="Population size",
-     col="grey25", cex.lab=1.2)
+     col="grey25", cex.lab=1.2,ylim=c(0,max(X[,2],na.rm=T)+0.01))
 dev.off()
 
 tiff("k_lbv_serop.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
@@ -1461,3 +1464,25 @@ plot(X[,1],X[,5],pch=16,
      col="grey25", cex.lab=1.2)
 dev.off()
 ##
+
+tiff("k_plots.tiff",width=12,height=5,units='in',res=300, compression = "lzw")
+par(mfrow=c(1,3))
+plot(X[,1],X[,2],pch=16,
+     ylab="Mean prevalence (%)",xlab="Population size",
+     col="grey25", cex.lab=1.2,ylim=c(0,max(X[,2],na.rm=T)+0.01))
+plot(X[,1],X[,3],pch=16,
+     ylab="Mean seroprevalence (%)",xlab="Population size",
+     col="grey25", cex.lab=1.2)
+plot(X[,1],X[,5],pch=16,
+     ylab="P[persist]",xlab="Population size",
+     col="grey25", cex.lab=1.2)
+dev.off()
+##
+tiff("k_P_SP_plots.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+par(mfrow=c(1,1))
+plot(X[,1],X[,3],pch=16,
+     ylab="Mean prevalence & seroprevalence (%)",xlab="Population size",
+     col="grey25", cex.lab=1.2)
+points(X[,1],X[,2],pch=16,
+     col="red", cex.lab=1.2)
+dev.off()
