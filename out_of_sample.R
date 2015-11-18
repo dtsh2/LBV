@@ -317,3 +317,8 @@ lmp<-lm(c(sim_sp_t[,3],sim_sp_t[,4])~c(sim_sp_t[,1],sim_sp_t[,2]))
 abline(lmp)
 legend('topright',c("Adult","Juvenile"),col=c("red","blue"),pch=16)
 dev.off()
+
+sd_s<-apply(sim_sp_t, 2, sd)
+write.csv(sd_s,"sd_outofsample.csv",sep="")
+res_sum<-(summary(sim_sp_t))
+write.csv(res_sum,"summary_outofsample.csv",sep="")
