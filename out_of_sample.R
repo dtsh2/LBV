@@ -1,6 +1,7 @@
 # system("R CMD SHLIB lbvseirNoSeasFreqTwoParsMeasureBinom.c")
 
 dyn.load("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
+
 # dyn.unload("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
 
 lbvd<-read.csv("lbv_data_plustime.csv")

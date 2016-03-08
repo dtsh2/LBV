@@ -28,7 +28,7 @@ dyn.load("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
 # dyn.unload("lbvseirNoSeasFreqTwoParsMeasureBinom.dll")
 pomp(
   data = data.frame(
-    time=seq(from=0,to=365*25,by=1),  # time for simulations to run
+    time=seq(from=0,to=365*35,by=1),  # time for simulations to run
     X = NA # dummy variables
     ),
   times="time",
@@ -68,7 +68,9 @@ sim <- simulate(sir,params=c(params),seed=3593885L,
 class(sir) # pomp object
 class(sim) # data frame - change states, obs and data.frame if want pomp obj
 #
-tiff("juv_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("juv_dynamics.pdf",width=10,height=8)
+
+#tiff("juv_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(sim$time,sim$SUSJ,type="l",xlab="days",ylab="numbers")
 points(sim$time,sim$RECJ,col="green",type="l")
@@ -78,10 +80,12 @@ legend("topleft",c("Susceptible","Recovered","Maternal-antibody","Infected"),
        col=c("black","green","brown","red"),lty=1,bty="n")
 dev.off()
 
-tiff("juv_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("juv_2yrs_dynamics.pdf",width=8,height=8)
+#tiff("juv_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(sim$time[8396:9126],sim$SUSJ[8396:9126],type="l",
-     ylim=c(0,max(c(sim$SUSJ,sim$RECJ,sim$MDA))),xlab="days",ylab="numbers")
+     ylim=c(0,max(c(sim$SUSJ,sim$RECJ,sim$MDA))),xlab="days",ylab="numbers")#,xaxt = "n")
+#axis(1, at=sim$time[8396:9126], labels=1:length(sim$time[8396:9126]),tck=0)
 points(sim$time[8396:9126],sim$RECJ[8396:9126],col="green",type="l")
 points(sim$time[8396:9126],sim$MDA[8396:9126],col="brown",type="l")
 points(sim$time[8396:9126],sim$INFJ[8396:9126],col="red",type="l")
@@ -90,7 +94,8 @@ legend("topleft",c("Susceptible","Recovered","Maternal-antibody","Infected"),
 dev.off()
 #
 
-tiff("adult_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("adult_dynamics.pdf",width=8,height=8)
+#tiff("adult_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(sim$time,sim$RECA,col="green",type="l",ylim=c(0,max(c(sim$RECA,sim$SUSA)))
      ,xlab="days",ylab="numbers")
@@ -100,17 +105,20 @@ legend("topleft",c("Susceptible","Recovered","Infected"),
        col=c("black","green","red"),lty=1,bty="n")
 dev.off()
 
-tiff("adult_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("adult_2yrs_dynamics.pdf",width=8,height=8)
+#tiff("adult_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(sim$time[8396:9126],sim$RECA[8396:9126],col="green",type="l",ylim=c(0,max(c(sim$RECA,sim$SUSA)))
-     ,xlab="days",ylab="numbers")
+     ,xlab="days",ylab="numbers")#,xaxt = "n")
+#axis(1, at=sim$time[8396:9126], labels=1:length(sim$time[8396:9126]),tck=0)
 points(sim$time[8396:9126],sim$SUSA[8396:9126],type="l")
 points(sim$time[8396:9126],sim$INFA[8396:9126],col="red",type="l")
 legend("left",c("Susceptible","Recovered","Infected"),
        col=c("black","green","red"),lty=1,bty="n")
 dev.off()
 #
-tiff("sp_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("sp_dynamics.pdf",width=8,height=8)
+#tiff("sp_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(sim$time,sim$SPA,type="l",col="darkgreen",ylim=c(0,1)
      ,xlab="days",ylab="seroprevalence (%)")
@@ -119,7 +127,8 @@ legend("topright",c("Adult","Juvenile"),
        col=c("darkgreen","darkblue"),lty=1,bty="n")
 dev.off()
 
-tiff("sp_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("sp_2yrs_dynamics.pdf",width=8,height=8)
+#tiff("sp_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(sim$time[8396:9126],sim$SPA[8396:9126],type="l",col="darkgreen",ylim=c(0,1)
      ,xlab="days",ylab="seroprevalence (%)")
@@ -128,7 +137,8 @@ legend("topright",c("Adult","Juvenile"),
        col=c("darkgreen","darkblue"),lty=1,bty="n")
 dev.off()
 #
-tiff("inf_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("inf_dynamics.pdf",width=8,height=8)
+#tiff("inf_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(sim$time,sim$INFA,type="l",col="orange",ylim=c(0,500)
      ,xlab="days",ylab="numbers")
@@ -137,7 +147,8 @@ legend("topright",c("adults","juveniles"),
        col=c("orange","red"),lty=1,bty="n")
 dev.off()
 
-tiff("inf_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("inf_2yrs_dynamics.pdf",width=8,height=8)
+#tiff("inf_2yrs_dynamics.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(sim$time[8396:9126],sim$INFA[8396:9126],type="l",col="orange",ylim=c(0,200)
      ,xlab="days",ylab="numbers")
@@ -170,7 +181,8 @@ simspj<-test[c(7301,7666,7725,7756,7970,8031,8090,8121,8212,8335,8396,8455)]
 
 ## plots Ns
 
-tiff("mean_numbers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("mean_numbers.pdf",width=8,height=8)
+#tiff("mean_numbers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 with(sim,plot(time,SUSA,type="n",xlim=c(7000,9000),ylab="numbers"))
 #for(i in unique(sim$sim))
@@ -216,20 +228,21 @@ box(col="black")
 dev.off()
 
 # N infected
-tiff("inf_points.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("inf_points.pdf",width=8,height=8)
+#tiff("inf_points.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 with(sim,plot(time,INFA,type="n",xlim=c(8000,9000),ylim=c(0,300),ylab="numbers"))
 #sim$INFA[sim$INFA==0] <- NA
 for(i in unique(sim$sim))
   with(sim[ sim$sim==i,],points(time, INFA,col=adjustcolor("orange", alpha=0.5)))
-#sim$INFA[sim$INFA==0] <- NA
+sim$INFA[sim$INFA==0] <- NA
 test<-tapply(sim$INFA, sim$time, mean, na.rm=T)
 lines(1:length(test),test,col="black")
 
 for(i in unique(sim$sim))
 #sim$INFJ[sim$INFJ==0] <- NA
   with(sim[ sim$sim==i,],points(time, INFJ,col=adjustcolor("red", alpha=0.5)))
-#sim$INFJ[sim$INFJ==0] <- NA
+sim$INFJ[sim$INFJ==0] <- NA
 test<-tapply(sim$INFJ, sim$time, mean, na.rm=T)
 lines(1:length(test),test,col="white")
 
@@ -262,8 +275,9 @@ cr
 crt<-cor.test(c(simspa,simspj),c(DSPA,DSPJ))
 crt
 lmp<-lm(c(DSPA,DSPJ)~(c(simspa,simspj)))
+pdf("cor_pred_vs_data.pdf",width=8,height=8)
 
-tiff("cor_pred_vs_data.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#tiff("cor_pred_vs_data.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 plot(c(simspa,simspj),c(DSPA,DSPJ),ylim=c(0,max(c(DSPA,DSPJ))),xlim=c(0,max(c(simspa,simspj))),col=c(rep("red",12),rep("blue",12)),
      ylab="Mean seroprevalence (%)",xlab="Predicted seroprevalence (%)",pch=19)
 legend("topleft",c("juvenile","adult"),col=c("blue","red"),pch=19,bty="n")
@@ -313,7 +327,9 @@ for(ii in 1:12)
 }
 
 ## Plot data vs the true underlying epidemic.
-tiff("sp_data_sim.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("sp_data_sim.pdf",width=8,height=8)
+
+#tiff("sp_data_sim.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 #plot(lbv.new$times, lbv.new$DSPA, type="l", col="red", bty = "n",ylim=c(0,1),
 #     #ylim = c(0, max(lbv.new$SpA.ci.u)), 
 #     xlab = "days", ylab = "seroprevalence")
@@ -608,7 +624,8 @@ results[results[,1]==max(results[,1]),]
 maxLL<-as.data.frame(results[results[,1]==max(results[,1]),])
 names(maxLL)<-c("negll","Beta","Rho")
 
-tiff("ll_beta_rho.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+#tiff("ll_beta_rho.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("ll_beta_rho.pdf",width=8,height=8)
 
 image(zzg,ann=T,xlim=c(0,max(results[,2])),ylim=c(0,max(results[,3])),
       ylab=rholab,xlab=betalab)
@@ -619,7 +636,8 @@ points(x=maxLL[2,],y=maxLL[3,],pch=16,col="black")
 dev.off()
 
 ########################
-tiff("ll_beta_rho_surf.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("ll_beta_rho_surf.pdf",width=8,height=8)
+#tiff("ll_beta_rho_surf.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 par(omi=c(1,1,0.5,1))
 par(mai=c(1,1,0.8,0.8))
@@ -656,7 +674,8 @@ dev.off()
 #head(results)
 ########
 
-tiff("ll_beta_rho_surf_v2.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("ll_beta_rho_surf_v2.pdf",width=8,height=8)
+#tiff("ll_beta_rho_surf_v2.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 split.screen(rbind(c(0.1,0.45,0.55, 0.9), 
                    c(0.55, 0.9, 0.55, 0.9),
@@ -732,7 +751,7 @@ dyn.load("lbvseirNoSeasFreqMeasure.dll")
 
 pomp(
   data = data.frame(
-    time=seq(from=0,to=365*25,by=1),  # time for simulations to run
+    time=seq(from=0,to=365*35,by=1),  # time for simulations to run
     X = NA # dummy variables
   ),
   times="time",
@@ -916,11 +935,11 @@ results<-array(NA,dim=c(100,1,5))
 
 # for one parameter set....
 out1 <-simulate(sir,params=c(paramset[1,]),
-                seed=1493885L,nsim=100,states=T,obs=F,as.data.frame=T) #
+                seed=1493885L,nsim=200,states=T,obs=F,as.data.frame=T) #
 
-outres1 <- out1[seq(from=9126,to=912600,by=9126),] # select last #s
-N1 = array(0,c(100,5)) # same dimensions as No. runs * outputs I want
-for (i in 1:100){ # each stochastic run
+outres1 <- out1[seq(from=12776,to=1277600,by=12776),] # select last #s
+N1 = array(0,c(200,5)) # same dimensions as No. runs * outputs I want
+for (i in 1:200){ # each stochastic run
   N1[i,1]<-sum(outres1[i,1:12])
   N1[i,2]<-(sum(outres1[i,6],outres1[i,11])/sum(outres1[i,1:12]))*100 # prevalence; total
   N1[i,3]<-((outres1[i,12])/(sum(outres1[i,8:12])))*100 # adult seroprevalence; total
@@ -930,11 +949,11 @@ for (i in 1:100){ # each stochastic run
 N1[is.na(N1)]<- 0
 ## now average
 M1 = array(0,c(1,5))
-M1[1] = mean(N1[1:100,1]) # population size
-M1[2] = mean(N1[1:100,2]) # prevalence
-M1[3] = mean(N1[1:100,3]) # adult seroprevalence
-M1[4] = mean(N1[1:100,4]) # pop ext
-M1[5] = mean(N1[1:100,5]) # lbv ext
+M1[1] = mean(N1[1:200,1]) # population size
+M1[2] = mean(N1[1:200,2]) # prevalence
+M1[3] = mean(N1[1:200,3]) # adult seroprevalence
+M1[4] = mean(N1[1:200,4]) # pop ext
+M1[5] = mean(N1[1:200,5]) # lbv ext
 rm(out1)
 M1
 results[1,,]<-M1
@@ -946,10 +965,10 @@ results<-array(NA,dim=c(100,1,5))
 ## change # sims
 for (j in 1:length(paramset[,1])){
   out <-simulate(sir,params=c(paramset[j,]),
-                 seed=1493885L,nsim=100,states=T,obs=F,as.data.frame=T) #
-  outres <- out[seq(from=9126,to=912600,by=9126),] # select last #s
-  N = array(0,c(100,5)) # same dimensions as No. runs * outputs I want
-  for (i in 1:100){ # each stochastic run
+                 seed=1493885L,nsim=200,states=T,obs=F,as.data.frame=T) #
+  outres <- out[seq(from=12776,to=1277600*2,by=12776),] # select last #s
+  N = array(0,c(200,5)) # same dimensions as No. runs * outputs I want
+  for (i in 1:200){ # each stochastic run
     N[i,1]<-sum(outres[i,1:12])
     N[i,2]<-(sum(outres[i,6],outres[i,11])/sum(outres[i,1:12]))*100 # prevalence; total
     N[i,3]<-((outres[i,12])/(sum(outres[i,8:12])))*100 # adult seroprevalence; total
@@ -959,11 +978,11 @@ for (j in 1:length(paramset[,1])){
   N[is.na(N)]<- 0
   ## now average
   M = array(0,c(1,5))
-  M[1] = mean(N[1:100,1]) # population size
-  M[2] = mean(N[1:100,2]) # prevalence
-  M[3] = mean(N[1:100,3]) # adult seroprevalence
-  M[4] = mean(N[1:100,4]) # mean pop persistence
-  M[5] = mean(N[1:100,5]) # mean path persistence
+  M[1] = mean(N[1:200,1]) # population size
+  M[2] = mean(N[1:200,2]) # prevalence
+  M[3] = mean(N[1:200,3]) # adult seroprevalence
+  M[4] = mean(N[1:200,4]) # mean pop persistence
+  M[5] = mean(N[1:200,5]) # mean path persistence
   rm(out)
   results[j,,]<-M
 }
@@ -1207,7 +1226,10 @@ dimnames(res)[[2]]<-c("Population","Prevalence",
                       "Population persistence",
                       "LBV persistence")
 
-write.csv(res, "results_25yr1000Sens_PRCC.csv", row.names=F, na="")
+write.csv(res, "results_35yr200Sens_PRCC.csv", row.names=F, na="")
+
+## check results
+# read.csv(res, "results_25yr1000Sens_PRCC_d.csv", row.names=F, na="")
 
 res<-cbind(#X[,1],#X[,2],
   #X[,3],
@@ -1221,7 +1243,8 @@ results=prcc(par.mat=hypercube,model.output=res ## results matrix here...
                #"Adult seroprevalence",
                #"Population persistence",
                "LBV persistence"))
-tiff("prcc_lbv_pers.tiff",width=6,height=8,units='in',res=300, compression = "lzw")
+#tiff("prcc_lbv_pers.tiff",width=6,height=8,units='in',res=300, compression = "lzw")
+pdf("prcc_lbv_pers.pdf",width=6,height=8)
 plot.prcc(results,ylim=c(-1,1),cex.sub=1.5,cex.axis=1.25,cex.names=1.5)
 dev.off()
 
@@ -1352,17 +1375,17 @@ paramset<-cbind(BETA,
 
 ## Calling requisite libraries for parallel computing
 
-library(foreach)
-library(doSNOW)
+# library(foreach)
+# library(doSNOW)
 
 #Setting up "parallel backend"
-
-w<-makeCluster(3,type="SOCK") # makes the cluster, i.e. no of cores ABC = 8 cores, DEF = 12 see performance to see # of cores
-registerDoSNOW(w) # 
-
+#
+#w<-makeCluster(3,type="SOCK") # makes the cluster, i.e. no of cores ABC = 8 cores, DEF = 12 see performance to see # of cores
+#registerDoSNOW(w) # 
+#
 #Checks that the number of workers is set up correctly.
-
-getDoParWorkers()
+#
+# getDoParWorkers()
 
 #######################################################3
 results<-array(NA,dim=c(40,1,5))
@@ -1370,26 +1393,27 @@ results<-array(NA,dim=c(40,1,5))
 # for one parameter set....
 ## change # sims
 out1 <-simulate(sir,params=c(paramset[1,]),
-                seed=1493885L,nsim=100,states=T,obs=F,as.data.frame=T) #
+                seed=1493885L,nsim=200,states=T,obs=F,as.data.frame=T) #
 
-outres1 <- out1[seq(from=9126,to=912600,by=9126),] # select last #s
-N1 = array(0,c(100,5)) # same dimensions as No. runs * outputs I want
-for (i in 1:100){ # each stochastic run
+outres1 <- out1[seq(from=12776,to=1277600*2,by=12776),] # select last #s
+N1 = array(0,c(200,5)) # same dimensions as No. runs * outputs I want
+for (i in 1:200){ # each stochastic run
   N1[i,1]<-sum(outres1[i,1:12])
   N1[i,2]<-(sum(outres1[i,6],outres1[i,11])/sum(outres1[i,1:12]))*100 # prevalence; total
-  N1[i,3]<-((outres1[i,12])/(sum(outres1[i,8:12])))*100 # adult seroprevalence; total
+  N1[i,3]<-outres1[i,12]/(sum(outres1[i,8:12]))*100 # adult seroprevalence; total
   N1[i,4]<-ifelse(sum(outres1[i,1:12])>0,1,0) # population extinct for each run
   N1[i,5]<-ifelse(sum(outres1[i,6],outres1[i,11])>0,1,0) # pathogen extinction for each run
 }
 N1[is.na(N1)]<- 0
 ## now average
 N1[,2][N1[,2] == 0] <- NA
+N1[,2][N1[,2] == 0] <- NA
 M1 = array(0,c(1,5))
-M1[1] = mean(N1[1:100,1]) # population size
-M1[2] = mean(N1[1:100,2],na.rm=T) # prevalence
-M1[3] = mean(N1[1:100,3]) # adult seroprevalence
-M1[4] = mean(N1[1:100,4]) # adult seroprevalence
-M1[5] = mean(N1[1:100,5]) # adult seroprevalence
+M1[1] = mean(N1[1:200,1]) # population size
+M1[2] = mean(N1[1:200,2],na.rm=T) # prevalence
+M1[3] = mean(N1[1:200,3],na.rm=T) # adult seroprevalence
+M1[4] = mean(N1[1:200,4]) # adult seroprevalence
+M1[5] = mean(N1[1:200,5]) # adult seroprevalence
 rm(out1)
 M1
 results[1,,]<-M1
@@ -1401,33 +1425,33 @@ results<-array(NA,dim=c(100,1,5))
 
 for (j in 1:length(paramset[,1])){
   out <-simulate(sir,params=c(paramset[j,]),
-                 seed=1493885L,nsim=100,states=T,obs=F,as.data.frame=T) #
-  outres <- out[seq(from=9126,to=912600,by=9126),] # select last #s
-  N = array(0,c(100,5)) # same dimensions as No. runs * outputs I want
-  for (i in 1:100){ # each stochastic run
+                 seed=1493885L,nsim=200,states=T,obs=F,as.data.frame=T) #
+  outres <- out[seq(from=12776,to=1277600*2,by=12776),] # select last #s
+  N = array(0,c(200,5)) # same dimensions as No. runs * outputs I want
+  for (i in 1:200){ # each stochastic run
     N[i,1]<-sum(outres[i,1:12])
     N[i,2]<-(sum(outres[i,6],outres[i,11])/sum(outres[i,1:12]))*100 # prevalence; total
-    N[i,3]<-((outres[i,12])/(sum(outres[i,8:12])))*100 # adult seroprevalence; total
+    N[i,3]<-outres[i,12]/sum(outres[i,8:12])*100 # adult seroprevalence; total
     N[i,4]<-ifelse(sum(outres[i,1:12])>0,1,0) # population extinct for each run
     N[i,5]<-ifelse(sum(outres[i,6],outres[i,11])>0,1,0) # pathogen extinction for each run
   }
   N[is.na(N)]<- 0
   N[,2][N[,2] == 0] <- NA
-  N[,3][N[,3] == 0] <- NA
+  N[,3][N[,3] < 0.1] <- NA
   ## now average
   M = array(0,c(1,5))
-  M[1] = mean(N[1:100,1]) # population size
-  M[2] = mean(N[1:100,2],na.rm=T) # prevalence
-  M[3] = mean(N[1:100,3],na.rm=T) # adult seroprevalence
-  M[4] = mean(N[1:100,4]) # mean pop extinction
-  M[5] = mean(N[1:100,5]) # mean path extinction
+  M[1] = mean(N[1:200,1]) # population size
+  M[2] = mean(N[1:200,2],na.rm=T) # prevalence
+  M[3] = mean(N[1:200,3],na.rm=T) # adult seroprevalence
+  M[4] = mean(N[1:200,4]) # mean pop extinction
+  M[5] = mean(N[1:200,5]) # mean path extinction
   rm(out)
   results[j,,]<-M
 }
 #
 #########################################################33
 
-w<-makeCluster(1,type="SOCK") # return to one core
+#w<-makeCluster(1,type="SOCK") # return to one core
 
 ############################################################3
 ## need matrix of results...
@@ -1436,6 +1460,8 @@ dim(X)<-c(100,5)
 head(X)
 tail(X)
 
+write.csv(results,"K-results.csv",row.names=F)
+
 ################################################################################
 # below for K
 # plot(X[,1],X[,2])
@@ -1443,21 +1469,27 @@ tail(X)
 par(mfrow=c(1,1))
 par(mar=c(5, 6, 4, 4) + 0.1)
 
-tiff("k_lbv_prev.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("k_lbv_prev.pdf", width = 6, height = 6)
+#png("k_lbv_prev.png", width = 4, height = 4, units = 'in', res = 300)
+#tiff("k_lbv_prev.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(X[,1],X[,2],pch=16,
      ylab="Mean prevalence (%)",xlab="Population size",
      col="grey25", cex.lab=1.2,ylim=c(0,max(X[,2],na.rm=T)+0.01))
 dev.off()
 
-tiff("k_lbv_serop.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("k_lbv_seroprev.pdf", width = 6, height = 6)
+#png("k_lbv_seroprev.png", width = 4, height = 4, units = 'in', res = 300)
+#tiff("k_lbv_serop.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(X[,1],X[,3],pch=16,
      ylab="Mean seroprevalence (%)",xlab="Population size",
      col="grey25", cex.lab=1.2)
 dev.off()
 
-tiff("k_lbv_pers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+pdf("k_lbv_pers.pdf", width = 6, height = 6)
+#png("k_lbv_pers.png", width = 4, height = 4, units = 'in', res = 300)
+#tiff("k_lbv_pers.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 
 plot(X[,1],X[,5],pch=16,
      ylab="P[persist]",xlab="Population size",
@@ -1465,7 +1497,9 @@ plot(X[,1],X[,5],pch=16,
 dev.off()
 ##
 
-tiff("k_plots.tiff",width=12,height=5,units='in',res=300, compression = "lzw")
+pdf("k_plots.pdf", width = 12, height = 6)
+#png("k_plots.png", width = 12, height = 5, units = 'in', res = 300)
+#tiff("k_plots.tiff",width=12,height=5,units='in',res=300, compression = "lzw")
 par(mfrow=c(1,3))
 plot(X[,1],X[,2],pch=16,
      ylab="Mean prevalence (%)",xlab="Population size",
@@ -1478,11 +1512,14 @@ plot(X[,1],X[,5],pch=16,
      col="grey25", cex.lab=1.2)
 dev.off()
 ##
-tiff("k_P_SP_plots.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
+
+pdf("k_P_SP_plots.pdf", width = 8, height = 8)
+#png("k_P_SP_plots.png", width = 8, height = 8, units = 'in', res = 300)
+#tiff("k_P_SP_plots.tiff",width=8,height=8,units='in',res=300, compression = "lzw")
 par(mfrow=c(1,1))
 plot(X[,1],X[,3],pch=16,
      ylab="Mean prevalence & seroprevalence (%)",xlab="Population size",
-     col="grey25", cex.lab=1.2)
+     col="grey25", cex.lab=1.2,ylim=c(0,max(X[,3],na.rm=T)))
 points(X[,1],X[,2],pch=16,
      col="red", cex.lab=1.2)
 dev.off()
