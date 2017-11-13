@@ -88,7 +88,8 @@ symbols(-0.5,0.9,0.2,inches=F,
         bg="#0000FF0A",
         #fg="white",bg="red",
         add=T)
-text(1,0.9, "size = 1", cex=1.5)
+abline(h=0)
+text(1,0.9, "sample size = 1", cex=1.5)
 
 foi<-exp(coef(model2))
 plot(data$Age,rep(foi,14),lty=2,type="l",xlim=c(-1,15),
